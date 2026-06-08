@@ -9,7 +9,6 @@ import ExtensionRegistration from "./ExtensionRegistration";
 
 
 import Customwidget from "./CustomwidgetMainMenuItem";
-import Anotherwidget from "./AnotherwidgetMainMenuItem";
 
 function App() {
   return (
@@ -22,10 +21,6 @@ function App() {
           <Route
             exact path="custom-widget"
             element={<Customwidget />}
-          />
-          <Route
-            exact path="another-widget"
-            element={<Anotherwidget />}
           />
         </Routes>
       </ErrorBoundary>

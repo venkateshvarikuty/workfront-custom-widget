@@ -10,10 +10,26 @@ Welcome to my Adobe I/O Application!
 
 - `aio app run` to start your local Dev server
 - App will run on `localhost:9080` by default
+- For Workfront custom form UI Extensions, use the base local URL from `aio app run` as the Workfront `extensionOverride` value, for example `https://localhost:62847`. Do not use the routed widget URL as the override value.
 
 By default the UI will be served locally but actions will be deployed and served from Adobe I/O Runtime. To run your actions locally use the `aio app dev` option.
 
 For more information on the difference between `aio app run` and `aio app dev`, see [here](https://developer.adobe.com/app-builder/docs/guides/development/#aio-app-dev-vs-aio-app-run)
+
+## Workfront UI Extension
+
+This app registers one Workfront custom form widget:
+
+- Label: `Generic Form`
+- Widget ID: `custom-widget`
+- Route: `/index.html#/custom-widget`
+
+To test it in Workfront Form Builder:
+
+1. Run `aio app run`.
+2. Open the local HTTPS URL once in the browser and accept the certificate warning.
+3. In the Workfront browser tab, set local storage `extensionOverride` to the base local URL printed by `aio app run`.
+4. Refresh Workfront, add a `UI Extensions` field to a custom form, then select `Generic Form`.
 
 ## Test & Coverage
 

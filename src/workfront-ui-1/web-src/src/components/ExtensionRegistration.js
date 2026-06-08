@@ -6,7 +6,7 @@ import { Text } from "@adobe/react-spectrum";
 import { register } from "@adobe/uix-guest";
 import { extensionId } from "./Constants";
 import metadata from '../../../../app-metadata.json';
-import { icon1, icon2 } from './icons';
+import { icon1 } from './icons';
 
 function ExtensionRegistration() {
   const init = async () => {
@@ -14,7 +14,7 @@ function ExtensionRegistration() {
       metadata,
       methods: {
         id: extensionId,
-        mainMenu: {
+        widgets: {
           getItems() {
             return [
               {
@@ -22,12 +22,12 @@ function ExtensionRegistration() {
                 url: '/index.html#/custom-widget',
                 label: 'Generic Form',
                 icon: icon1,
-              },
-              {
-                id: 'another-widget',
-                url: '/index.html#/another-widget',
-                label: 'Another Widget',
-                icon: icon2,
+                dimensions: {
+                  height: 500,
+                  width: 700,
+                  maxHeight: 700,
+                  maxWidth: 900,
+                },
               },
             // @todo YOUR HEADER BUTTONS DECLARATION SHOULD BE HERE
             ];
