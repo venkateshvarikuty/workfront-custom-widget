@@ -1,0 +1,16 @@
+{
+  "name": "workfront-custom-widget",
+  "id": "workfront-custom-widget",
+  "description": "POC widget",
+  "version": "0.0.1",
+  "mainMenuItems": [
+    {
+      "label": "Generic Form",
+      "id": "custom-widget"
+    },
+    {
+      "label": "Another Widget",
+      "id": "another-widget"
+    }
+  ]
+}
