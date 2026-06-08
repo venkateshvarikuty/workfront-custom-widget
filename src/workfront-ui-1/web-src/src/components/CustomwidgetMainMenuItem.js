@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Checkbox,
@@ -18,12 +18,27 @@ import {
   Well,
 } from '@adobe/react-spectrum';
 
+const WORKFRONT_API_BASE_URL = 'https://origin-dluxtechapacptrsdwf.my.workfront.com/attask/api/v21.0';
+const WORKFRONT_SESSION_ID = '094fe1b2fdbc498eaaace42bfe6467c3';
+const WORKFRONT_TASK_FIELDS = [
+  'DE:Request type',
+  'DE:Request title',
+  'DE:Requested by',
+  'DE:Target date',
+  'DE:Request details',
+];
+const TASK_ID_PARAM_NAMES = ['taskId', 'taskID', 'taskid', 'task_id', 'ID', 'id', 'objID', 'objectID'];
+
 const initialForm = {
   title: '',
-  requestType: 'general',
+  requestType: '',
   requestedBy: '',
   dueDate: '',
   description: '',
+  campaignName: '',
+  brand: '',
+  assetOwner: '',
+  additionalNotes: '',
   notifyRequester: true,
 };
 
@@ -34,14 +49,209 @@ const requestTypes = [
   { id: 'asset', label: 'Asset update' },
 ];
 
+const getParamValue = (search) => {
+  const params = new URLSearchParams(search);
+
+  for (const name of TASK_ID_PARAM_NAMES) {
+    const value = params.get(name);
+
+    if (value?.trim()) {
+      return value.trim();
+    }
+  }
+
+  return '';
+};
+
+const getTaskIdFromUrl = () => {
+  const fromSearch = getParamValue(window.location.search);
+
+  if (fromSearch) {
+    return fromSearch;
+  }
+
+  const hash = window.location.hash || '';
+  const hashQueryIndex = hash.indexOf('?');
+
+  if (hashQueryIndex >= 0) {
+    const fromHashQuery = getParamValue(hash.slice(hashQueryIndex + 1));
+
+    if (fromHashQuery) {
+      return fromHashQuery;
+    }
+  }
+
+  const taskPathMatch = decodeURIComponent(window.location.href).match(/\/TASK\/([a-z0-9]+)/i);
+  return taskPathMatch?.[1] || '';
+};
+
+const getWorkfrontTaskUrl = (taskId) => {
+  const params = new URLSearchParams({
+    fields: WORKFRONT_TASK_FIELDS.join(','),
+  });
+
+  return `${WORKFRONT_API_BASE_URL}/TASK/${encodeURIComponent(taskId)}/search?${params.toString()}`;
+};
+
+const getWorkfrontTaskRecord = (payload) => {
+  if (Array.isArray(payload?.data)) {
+    return payload.data[0] || {};
+  }
+
+  if (payload?.data && typeof payload.data === 'object') {
+    return payload.data;
+  }
+
+  if (payload && typeof payload === 'object') {
+    return payload;
+  }
+
+  return {};
+};
+
+const getWorkfrontField = (record, fieldName) => {
+  const plainFieldName = fieldName.replace('DE:', '').trim();
+  const candidates = [fieldName, fieldName.trim(), plainFieldName];
+  const sources = [record, record?.parameterValues, record?.customData, record?.fields];
+
+  for (const source of sources) {
+    if (!source || typeof source !== 'object') {
+      continue;
+    }
+
+    for (const candidate of candidates) {
+      if (source[candidate] !== undefined && source[candidate] !== null) {
+        return source[candidate];
+      }
+    }
+  }
+
+  return '';
+};
+
+const getTextValue = (value) => {
+  if (value === undefined || value === null) {
+    return '';
+  }
+
+  return String(value).trim();
+};
+
+const getDateValue = (value) => {
+  const textValue = getTextValue(value);
+  const dateMatch = textValue.match(/^\d{4}-\d{2}-\d{2}/);
+
+  return dateMatch?.[0] || textValue;
+};
+
+const normalizeRequestType = (value) => {
+  const textValue = getTextValue(value);
+
+  if (!textValue) {
+    return '';
+  }
+
+  const matchedType = requestTypes.find(
+    (type) =>
+      type.id.toLowerCase() === textValue.toLowerCase() ||
+      type.label.toLowerCase() === textValue.toLowerCase()
+  );
+
+  return matchedType?.id || textValue;
+};
+
+const mapTaskRecordToForm = (record) => ({
+  ...initialForm,
+  title: getTextValue(getWorkfrontField(record, 'DE:Request title')),
+  requestType: normalizeRequestType(getWorkfrontField(record, 'DE:Request type')),
+  requestedBy: getTextValue(getWorkfrontField(record, 'DE:Requested by')),
+  dueDate: getDateValue(getWorkfrontField(record, 'DE:Target date')),
+  description: getTextValue(getWorkfrontField(record, 'DE:Request details')),
+});
+
 const CustomwidgetMainMenuItem = () => {
   const [form, setForm] = useState(initialForm);
+  const [prefilledForm, setPrefilledForm] = useState(initialForm);
+  const [taskId, setTaskId] = useState('');
+  const [isLoadingTask, setIsLoadingTask] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [submittedOnce, setSubmittedOnce] = useState(false);
   const [submittedRequest, setSubmittedRequest] = useState(null);
 
+  useEffect(() => {
+    const nextTaskId = getTaskIdFromUrl();
+    setTaskId(nextTaskId);
+
+    if (!nextTaskId) {
+      setLoadError('Task ID was not found in the URL.');
+      return undefined;
+    }
+
+    let shouldUpdateState = true;
+
+    const loadTask = async () => {
+      setIsLoadingTask(true);
+      setLoadError('');
+
+      try {
+        const response = await fetch(getWorkfrontTaskUrl(nextTaskId), {
+          method: 'GET',
+          headers: {
+            sessionID: WORKFRONT_SESSION_ID,
+          },
+        });
+        const responseText = await response.text();
+        const payload = responseText ? JSON.parse(responseText) : {};
+
+        if (!response.ok) {
+          throw new Error(payload?.message || payload?.error?.message || `Workfront request failed (${response.status})`);
+        }
+
+        const taskRecord = getWorkfrontTaskRecord(payload);
+
+        if (Object.keys(taskRecord).length === 0) {
+          throw new Error('No task details were returned for this Task ID.');
+        }
+
+        const nextForm = mapTaskRecordToForm(taskRecord);
+
+        if (shouldUpdateState) {
+          setForm(nextForm);
+          setPrefilledForm(nextForm);
+          setSubmittedOnce(false);
+          setSubmittedRequest(null);
+        }
+      } catch (error) {
+        if (shouldUpdateState) {
+          setLoadError(error.message || 'Unable to load task details from Workfront.');
+        }
+      } finally {
+        if (shouldUpdateState) {
+          setIsLoadingTask(false);
+        }
+      }
+    };
+
+    loadTask();
+
+    return () => {
+      shouldUpdateState = false;
+    };
+  }, []);
+
+  const requestTypeOptions = useMemo(() => {
+    const hasSelectedType = requestTypes.some((type) => type.id === form.requestType);
+
+    if (!form.requestType || hasSelectedType) {
+      return requestTypes;
+    }
+
+    return [...requestTypes, { id: form.requestType, label: form.requestType }];
+  }, [form.requestType]);
+
   const selectedType = useMemo(
-    () => requestTypes.find((type) => type.id === form.requestType),
-    [form.requestType]
+    () => requestTypeOptions.find((type) => type.id === form.requestType),
+    [form.requestType, requestTypeOptions]
   );
 
   const errors = useMemo(() => {
@@ -49,6 +259,10 @@ const CustomwidgetMainMenuItem = () => {
 
     if (!form.title.trim()) {
       nextErrors.title = 'Enter a request title.';
+    }
+
+    if (!form.requestType.trim()) {
+      nextErrors.requestType = 'Select a request type.';
     }
 
     if (!form.requestedBy.trim()) {
@@ -86,14 +300,15 @@ const CustomwidgetMainMenuItem = () => {
 
     setSubmittedRequest({
       id: `WF-FORM-${Date.now().toString().slice(-6)}`,
+      taskId,
       ...form,
-      requestTypeLabel: selectedType?.label || 'General request',
+      requestTypeLabel: selectedType?.label || form.requestType,
       submittedAt: new Date().toLocaleString(),
     });
   };
 
   const handleReset = () => {
-    setForm(initialForm);
+    setForm(prefilledForm);
     setSubmittedOnce(false);
     setSubmittedRequest(null);
   };
@@ -113,12 +328,26 @@ const CustomwidgetMainMenuItem = () => {
             <Flex direction="column" gap="size-75">
               <StatusLight variant="info">Local POC widget</StatusLight>
               <Heading level={1} margin="size-0">
-                Generic Workfront Form
+                Workfront Task Form
               </Heading>
               <Text>
-                Capture a generic request, validate the required fields, and preview the payload that can later be sent to Workfront or an App Builder action.
+                Review the task details loaded from Workfront, then complete the remaining request fields.
               </Text>
             </Flex>
+
+            {(isLoadingTask || loadError || taskId) && (
+              <View
+                backgroundColor={loadError ? 'red-100' : 'blue-100'}
+                borderColor={loadError ? 'red-400' : 'blue-400'}
+                borderRadius="small"
+                borderWidth="thin"
+                padding="size-200"
+              >
+                <StatusLight variant={loadError ? 'negative' : isLoadingTask ? 'info' : 'positive'}>
+                  {loadError || (isLoadingTask ? 'Loading task details from Workfront' : `Loaded task ${taskId}`)}
+                </StatusLight>
+              </View>
+            )}
 
             <Divider size="S" />
 
@@ -140,8 +369,10 @@ const CustomwidgetMainMenuItem = () => {
                       selectedKey={form.requestType}
                       onSelectionChange={(key) => updateField('requestType', key)}
                       isRequired
+                      validationState={showError('requestType') ? 'invalid' : undefined}
+                      errorMessage={errors.requestType}
                     >
-                      {requestTypes.map((type) => (
+                      {requestTypeOptions.map((type) => (
                         <Item key={type.id}>{type.label}</Item>
                       ))}
                     </Picker>
@@ -178,6 +409,41 @@ const CustomwidgetMainMenuItem = () => {
                       width="100%"
                     />
 
+                    <Divider size="S" />
+
+                    <Heading level={3} margin="size-0">
+                      Additional details
+                    </Heading>
+
+                    <Flex direction={{ base: 'column', M: 'row' }} gap="size-200">
+                      <TextField
+                        label="Campaign name"
+                        value={form.campaignName}
+                        onChange={(value) => updateField('campaignName', value)}
+                        width="100%"
+                      />
+                      <TextField
+                        label="Brand"
+                        value={form.brand}
+                        onChange={(value) => updateField('brand', value)}
+                        width="100%"
+                      />
+                    </Flex>
+
+                    <TextField
+                      label="Asset owner"
+                      value={form.assetOwner}
+                      onChange={(value) => updateField('assetOwner', value)}
+                      width="100%"
+                    />
+
+                    <TextArea
+                      label="Additional notes"
+                      value={form.additionalNotes}
+                      onChange={(value) => updateField('additionalNotes', value)}
+                      width="100%"
+                    />
+
                     <Checkbox
                       isSelected={form.notifyRequester}
                       onChange={(isSelected) => updateField('notifyRequester', isSelected)}
@@ -207,7 +473,7 @@ const CustomwidgetMainMenuItem = () => {
                       Title: {form.title || 'Untitled request'}
                     </Text>
                     <Text>
-                      Type: {selectedType?.label || 'General request'}
+                      Type: {selectedType?.label || form.requestType || 'Not provided'}
                     </Text>
                     <Text>
                       Requester: {form.requestedBy || 'Not provided'}
@@ -217,6 +483,16 @@ const CustomwidgetMainMenuItem = () => {
                     </Text>
                     <Text>
                       Notification: {form.notifyRequester ? 'Enabled' : 'Disabled'}
+                    </Text>
+                    <Divider size="S" />
+                    <Text>
+                      Campaign: {form.campaignName || 'Not provided'}
+                    </Text>
+                    <Text>
+                      Brand: {form.brand || 'Not provided'}
+                    </Text>
+                    <Text>
+                      Asset owner: {form.assetOwner || 'Not provided'}
                     </Text>
                     {submittedRequest && (
                       <View
