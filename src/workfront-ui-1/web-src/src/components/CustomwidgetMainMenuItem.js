@@ -87,10 +87,11 @@ const getTaskIdFromUrl = () => {
 
 const getWorkfrontTaskUrl = (taskId) => {
   const params = new URLSearchParams({
+    taskId: taskId,
     fields: WORKFRONT_TASK_FIELDS.join(','),
   });
 
-  return `${WORKFRONT_API_BASE_URL}/TASK/${encodeURIComponent(taskId)}/search?${params.toString()}`;
+  return `http://localhost:3001/api/workfront/task?${params.toString()}`;
 };
 
 const getWorkfrontTaskRecord = (payload) => {
@@ -194,26 +195,40 @@ const CustomwidgetMainMenuItem = () => {
       setLoadError('');
 
       try {
-        const response = await fetch(getWorkfrontTaskUrl(nextTaskId), {
+        console.log('[CustomWidget] Loading task with ID:', nextTaskId);
+        const apiUrl = getWorkfrontTaskUrl(nextTaskId);
+        console.log('[CustomWidget] Proxy API URL:', apiUrl);
+
+        const response = await fetch(apiUrl, {
           method: 'GET',
-          headers: {
-            sessionID: WORKFRONT_SESSION_ID,
-          },
         });
+
         const responseText = await response.text();
-        const payload = responseText ? JSON.parse(responseText) : {};
+        console.log('[CustomWidget] Response status:', response.status);
+        console.log('[CustomWidget] Response text (first 200 chars):', responseText.substring(0, 200));
+
+        let payload;
+        try {
+          payload = responseText ? JSON.parse(responseText) : {};
+        } catch (e) {
+          console.error('[CustomWidget] JSON parse error:', e);
+          throw new Error('Invalid response from proxy server. Make sure the proxy server is running on port 3001.');
+        }
 
         if (!response.ok) {
-          throw new Error(payload?.message || payload?.error?.message || `Workfront request failed (${response.status})`);
+          console.error('[CustomWidget] Proxy error:', payload);
+          throw new Error(payload?.error || `Proxy request failed (${response.status})`);
         }
 
         const taskRecord = getWorkfrontTaskRecord(payload);
+        console.log('[CustomWidget] Task record:', taskRecord);
 
         if (Object.keys(taskRecord).length === 0) {
           throw new Error('No task details were returned for this Task ID.');
         }
 
         const nextForm = mapTaskRecordToForm(taskRecord);
+        console.log('[CustomWidget] Mapped form:', nextForm);
 
         if (shouldUpdateState) {
           setForm(nextForm);
@@ -222,6 +237,7 @@ const CustomwidgetMainMenuItem = () => {
           setSubmittedRequest(null);
         }
       } catch (error) {
+        console.error('[CustomWidget] Load task error:', error);
         if (shouldUpdateState) {
           setLoadError(error.message || 'Unable to load task details from Workfront.');
         }

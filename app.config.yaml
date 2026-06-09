@@ -1,3 +1,9 @@
 extensions:
   workfront/ui/1:
     $include: src/workfront-ui-1/ext.config.yaml
+
+actions:
+  get-workfront-task:
+    function: actions/get-workfront-task/index.js
+    web: 'enabled'
+    runtime: nodejs:18
