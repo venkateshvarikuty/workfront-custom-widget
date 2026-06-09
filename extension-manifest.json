@@ -1,13 +1,31 @@
 {
   "name": "workfront-custom-widget",
   "id": "workfront-custom-widget",
-  "description": "POC widget",
+  "description": "Workfront Custom Widget with Form Field Extension",
   "version": "0.0.1",
   "widgets": [
     {
       "label": "Generic Form",
       "id": "custom-widget",
       "url": "/index.html#/custom-widget"
+    }
+  ],
+  "extensions": [
+    {
+      "id": "form-field-widget",
+      "label": "Custom Form Field Widget",
+      "type": "formFieldWidget",
+      "url": "/index.html#/form-field-widget",
+      "description": "Custom field widget for Workfront forms with data display and form interactions",
+      "supportedFieldTypes": [
+        "text",
+        "paragraph",
+        "dropdown",
+        "checkbox",
+        "date",
+        "currency",
+        "number"
+      ]
     }
   ]
 }

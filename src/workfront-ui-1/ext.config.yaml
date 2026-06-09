@@ -2,6 +2,10 @@ operations:
   view:
     - type: web
       impl: index.html
+extensionPoints:
+  workfront/form/customFieldWidget:
+    - type: web
+      impl: index.html
 web: web-src
 hooks:
   pre-app-run: node node_modules/@adobe/uix-guest/scripts/generate-metadata.js
