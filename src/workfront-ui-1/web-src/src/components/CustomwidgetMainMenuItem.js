@@ -17,16 +17,8 @@ import {
   View,
   Well,
 } from '@adobe/react-spectrum';
+import actionWebInvoke from '../utils';
 
-const WORKFRONT_API_BASE_URL = 'https://origin-dluxtechapacptrsdwf.my.workfront.com/attask/api/v21.0';
-const WORKFRONT_SESSION_ID = '094fe1b2fdbc498eaaace42bfe6467c3';
-const WORKFRONT_TASK_FIELDS = [
-  'DE:Request type',
-  'DE:Request title',
-  'DE:Requested by',
-  'DE:Target date',
-  'DE:Request details',
-];
 const TASK_ID_PARAM_NAMES = ['taskId', 'taskID', 'taskid', 'task_id', 'ID', 'id', 'objID', 'objectID'];
 
 const initialForm = {
@@ -85,13 +77,15 @@ const getTaskIdFromUrl = () => {
   return taskPathMatch?.[1] || '';
 };
 
-const getWorkfrontTaskUrl = (taskId) => {
-  const params = new URLSearchParams({
-    taskId: taskId,
-    fields: WORKFRONT_TASK_FIELDS.join(','),
-  });
-
-  return `http://localhost:3001/api/workfront/task?${params.toString()}`;
+const getActionUrl = () => {
+  // In development, use the local action server
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:9090/api/v1/web/workfront-custom-widget/default/get-workfront-task';
+  }
+  
+  // In production, use the deployed action URL
+  // This should be replaced with the actual deployed action URL
+  return 'https://adobeio.adobe.io/api/workfront-custom-widget/default/get-workfront-task';
 };
 
 const getWorkfrontTaskRecord = (payload) => {
@@ -196,31 +190,37 @@ const CustomwidgetMainMenuItem = () => {
 
       try {
         console.log('[CustomWidget] Loading task with ID:', nextTaskId);
-        const apiUrl = getWorkfrontTaskUrl(nextTaskId);
-        console.log('[CustomWidget] Proxy API URL:', apiUrl);
+        const actionUrl = getActionUrl();
+        console.log('[CustomWidget] Action URL:', actionUrl);
 
-        const response = await fetch(apiUrl, {
-          method: 'GET',
-        });
+        // Call the Runtime Action instead of local proxy
+        const payload = await actionWebInvoke(actionUrl, {}, { taskId });
+        
+        console.log('[CustomWidget] Action response:', payload);
 
-        const responseText = await response.text();
-        console.log('[CustomWidget] Response status:', response.status);
-        console.log('[CustomWidget] Response text (first 200 chars):', responseText.substring(0, 200));
-
-        let payload;
-        try {
-          payload = responseText ? JSON.parse(responseText) : {};
-        } catch (e) {
-          console.error('[CustomWidget] JSON parse error:', e);
-          throw new Error('Invalid response from proxy server. Make sure the proxy server is running on port 3001.');
+        // The actionWebInvoke utility already parses the response
+        let responsePayload;
+        if (typeof payload === 'string') {
+          try {
+            responsePayload = JSON.parse(payload);
+          } catch (e) {
+            console.error('[CustomWidget] JSON parse error:', e);
+            throw new Error('Invalid response from Runtime Action.');
+          }
+        } else {
+          responsePayload = payload;
         }
 
-        if (!response.ok) {
-          console.error('[CustomWidget] Proxy error:', payload);
-          throw new Error(payload?.error || `Proxy request failed (${response.status})`);
+        // Handle error responses from the action
+        if (responsePayload.statusCode && responsePayload.statusCode !== 200) {
+          const errorMessage = responsePayload.body?.error || `Runtime Action failed (${responsePayload.statusCode})`;
+          console.error('[CustomWidget] Action error:', errorMessage);
+          throw new Error(errorMessage);
         }
 
-        const taskRecord = getWorkfrontTaskRecord(payload);
+        // The actual task data is in the body field
+        const taskData = responsePayload.body || responsePayload;
+        const taskRecord = getWorkfrontTaskRecord(taskData);
         console.log('[CustomWidget] Task record:', taskRecord);
 
         if (Object.keys(taskRecord).length === 0) {
@@ -289,38 +289,23 @@ const CustomwidgetMainMenuItem = () => {
       nextErrors.dueDate = 'Enter a target date.';
     }
 
-    if (form.description.trim().length < 20) {
-      nextErrors.description = 'Add at least 20 characters of context.';
+    if (!form.description.trim()) {
+      nextErrors.description = 'Enter request details.';
     }
 
     return nextErrors;
   }, [form]);
 
-  const updateField = (field, value) => {
-    setForm((currentForm) => ({
-      ...currentForm,
-      [field]: value,
-    }));
-    setSubmittedRequest(null);
-  };
+  const hasErrors = Object.keys(errors).length > 0;
+  const isFormModified = JSON.stringify(form) !== JSON.stringify(prefilledForm);
 
-  const showError = (field) => submittedOnce && errors[field];
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = () => {
     setSubmittedOnce(true);
+    setSubmittedRequest(form);
 
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
-
-    setSubmittedRequest({
-      id: `WF-FORM-${Date.now().toString().slice(-6)}`,
-      taskId,
-      ...form,
-      requestTypeLabel: selectedType?.label || form.requestType,
-      submittedAt: new Date().toLocaleString(),
-    });
+    // Here you would typically submit the form to your backend
+    console.log('[CustomWidget] Form submitted:', form);
+    alert('Form submitted successfully!');
   };
 
   const handleReset = () => {
@@ -329,209 +314,154 @@ const CustomwidgetMainMenuItem = () => {
     setSubmittedRequest(null);
   };
 
+  if (loadError) {
+    return (
+      <Provider theme={defaultTheme} colorScheme="light">
+        <View padding="size-200">
+          <Well>
+            <Text>Error: {loadError}</Text>
+          </Well>
+        </View>
+      </Provider>
+    );
+  }
+
+  if (isLoadingTask) {
+    return (
+      <Provider theme={defaultTheme} colorScheme="light">
+        <View padding="size-200">
+          <Text>Loading task details...</Text>
+        </View>
+      </Provider>
+    );
+  }
+
   return (
     <Provider theme={defaultTheme} colorScheme="light">
-      <View padding="size-400" backgroundColor="gray-50" minHeight="100vh">
-        <View
-          backgroundColor="gray-50"
-          borderColor="gray-300"
-          borderRadius="small"
-          borderWidth="thin"
-          maxWidth="960px"
-          padding="size-400"
-        >
-          <Flex direction="column" gap="size-300">
-            <Flex direction="column" gap="size-75">
-              <StatusLight variant="info">Local POC widget</StatusLight>
-              <Heading level={1} margin="size-0">
-                Workfront Task Form
-              </Heading>
-              <Text>
-                Review the task details loaded from Workfront, then complete the remaining request fields.
-              </Text>
-            </Flex>
+      <View padding="size-200">
+        <Heading level={3}>Workfront Task Request</Heading>
+        
+        {taskId && (
+          <Text size="small" UNSAFE_style={{ color: '#666', marginTop: '8px' }}>
+            Task ID: {taskId}
+          </Text>
+        )}
 
-            {(isLoadingTask || loadError || taskId) && (
-              <View
-                backgroundColor={loadError ? 'red-100' : 'blue-100'}
-                borderColor={loadError ? 'red-400' : 'blue-400'}
-                borderRadius="small"
-                borderWidth="thin"
-                padding="size-200"
-              >
-                <StatusLight variant={loadError ? 'negative' : isLoadingTask ? 'info' : 'positive'}>
-                  {loadError || (isLoadingTask ? 'Loading task details from Workfront' : `Loaded task ${taskId}`)}
-                </StatusLight>
-              </View>
-            )}
+        <Divider size="size-100" marginTop="size-200" marginBottom="size-200" />
 
-            <Divider size="S" />
+        <Form>
+          <TextField
+            label="Title"
+            value={form.title}
+            onChange={(value) => setForm({ ...form, title: value })}
+            errorMessage={submittedOnce && errors.title ? errors.title : ''}
+            validationState={submittedOnce && errors.title ? 'invalid' : 'valid'}
+            isRequired
+          />
 
-            <Flex direction={{ base: 'column', M: 'row' }} gap="size-400" alignItems="start">
-              <View flex="1 1 540px" minWidth="size-0">
-                <Form onSubmit={handleSubmit} width="100%" necessityIndicator="label">
-                  <Flex direction="column" gap="size-250">
-                    <TextField
-                      label="Request title"
-                      value={form.title}
-                      onChange={(value) => updateField('title', value)}
-                      isRequired
-                      validationState={showError('title') ? 'invalid' : undefined}
-                      errorMessage={errors.title}
-                    />
+          <Picker
+            label="Request Type"
+            items={requestTypeOptions}
+            selectedKey={form.requestType}
+            onSelectionChange={(key) => setForm({ ...form, requestType: key })}
+            errorMessage={submittedOnce && errors.requestType ? errors.requestType : ''}
+            validationState={submittedOnce && errors.requestType ? 'invalid' : 'valid'}
+            isRequired
+          >
+            {(item) => <Item key={item.id}>{item.label}</Item>}
+          </Picker>
 
-                    <Picker
-                      label="Request type"
-                      selectedKey={form.requestType}
-                      onSelectionChange={(key) => updateField('requestType', key)}
-                      isRequired
-                      validationState={showError('requestType') ? 'invalid' : undefined}
-                      errorMessage={errors.requestType}
-                    >
-                      {requestTypeOptions.map((type) => (
-                        <Item key={type.id}>{type.label}</Item>
-                      ))}
-                    </Picker>
+          <TextField
+            label="Requested By"
+            value={form.requestedBy}
+            onChange={(value) => setForm({ ...form, requestedBy: value })}
+            errorMessage={submittedOnce && errors.requestedBy ? errors.requestedBy : ''}
+            validationState={submittedOnce && errors.requestedBy ? 'invalid' : 'valid'}
+            isRequired
+          />
 
-                    <Flex direction={{ base: 'column', M: 'row' }} gap="size-200">
-                      <TextField
-                        label="Requested by"
-                        value={form.requestedBy}
-                        onChange={(value) => updateField('requestedBy', value)}
-                        isRequired
-                        validationState={showError('requestedBy') ? 'invalid' : undefined}
-                        errorMessage={errors.requestedBy}
-                        width="100%"
-                      />
-                      <TextField
-                        label="Target date"
-                        value={form.dueDate}
-                        onChange={(value) => updateField('dueDate', value)}
-                        placeholder="YYYY-MM-DD"
-                        isRequired
-                        validationState={showError('dueDate') ? 'invalid' : undefined}
-                        errorMessage={errors.dueDate}
-                        width="100%"
-                      />
-                    </Flex>
+          <TextField
+            label="Target Date"
+            value={form.dueDate}
+            onChange={(value) => setForm({ ...form, dueDate: value })}
+            errorMessage={submittedOnce && errors.dueDate ? errors.dueDate : ''}
+            validationState={submittedOnce && errors.dueDate ? 'invalid' : 'valid'}
+            isRequired
+          />
 
-                    <TextArea
-                      label="Request details"
-                      value={form.description}
-                      onChange={(value) => updateField('description', value)}
-                      isRequired
-                      validationState={showError('description') ? 'invalid' : undefined}
-                      errorMessage={errors.description}
-                      width="100%"
-                    />
+          <TextArea
+            label="Request Details"
+            value={form.description}
+            onChange={(value) => setForm({ ...form, description: value })}
+            errorMessage={submittedOnce && errors.description ? errors.description : ''}
+            validationState={submittedOnce && errors.description ? 'invalid' : 'valid'}
+            isRequired
+            height="style-size-200"
+          />
 
-                    <Divider size="S" />
+          <TextField
+            label="Campaign Name"
+            value={form.campaignName}
+            onChange={(value) => setForm({ ...form, campaignName: value })}
+          />
 
-                    <Heading level={3} margin="size-0">
-                      Additional details
-                    </Heading>
+          <TextField
+            label="Brand"
+            value={form.brand}
+            onChange={(value) => setForm({ ...form, brand: value })}
+          />
 
-                    <Flex direction={{ base: 'column', M: 'row' }} gap="size-200">
-                      <TextField
-                        label="Campaign name"
-                        value={form.campaignName}
-                        onChange={(value) => updateField('campaignName', value)}
-                        width="100%"
-                      />
-                      <TextField
-                        label="Brand"
-                        value={form.brand}
-                        onChange={(value) => updateField('brand', value)}
-                        width="100%"
-                      />
-                    </Flex>
+          <TextField
+            label="Asset Owner"
+            value={form.assetOwner}
+            onChange={(value) => setForm({ ...form, assetOwner: value })}
+          />
 
-                    <TextField
-                      label="Asset owner"
-                      value={form.assetOwner}
-                      onChange={(value) => updateField('assetOwner', value)}
-                      width="100%"
-                    />
+          <TextArea
+            label="Additional Notes"
+            value={form.additionalNotes}
+            onChange={(value) => setForm({ ...form, additionalNotes: value })}
+            height="style-size-200"
+          />
 
-                    <TextArea
-                      label="Additional notes"
-                      value={form.additionalNotes}
-                      onChange={(value) => updateField('additionalNotes', value)}
-                      width="100%"
-                    />
-
-                    <Checkbox
-                      isSelected={form.notifyRequester}
-                      onChange={(isSelected) => updateField('notifyRequester', isSelected)}
-                    >
-                      Notify requester when submitted
-                    </Checkbox>
-
-                    <Flex gap="size-150" wrap>
-                      <Button variant="accent" type="submit">
-                        Submit request
-                      </Button>
-                      <Button variant="secondary" type="button" onPress={handleReset}>
-                        Reset
-                      </Button>
-                    </Flex>
-                  </Flex>
-                </Form>
-              </View>
-
-              <View flex="1 1 320px" minWidth="size-0" width="100%">
-                <Well>
-                  <Flex direction="column" gap="size-150">
-                    <Heading level={2} margin="size-0">
-                      Draft preview
-                    </Heading>
-                    <Text>
-                      Title: {form.title || 'Untitled request'}
-                    </Text>
-                    <Text>
-                      Type: {selectedType?.label || form.requestType || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Requester: {form.requestedBy || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Target date: {form.dueDate || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Notification: {form.notifyRequester ? 'Enabled' : 'Disabled'}
-                    </Text>
-                    <Divider size="S" />
-                    <Text>
-                      Campaign: {form.campaignName || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Brand: {form.brand || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Asset owner: {form.assetOwner || 'Not provided'}
-                    </Text>
-                    {submittedRequest && (
-                      <View
-                        backgroundColor="green-100"
-                        borderColor="green-400"
-                        borderRadius="small"
-                        borderWidth="thin"
-                        padding="size-200"
-                      >
-                        <Flex direction="column" gap="size-75">
-                          <StatusLight variant="positive">Ready to send</StatusLight>
-                          <Text>
-                            {submittedRequest.id} submitted at {submittedRequest.submittedAt}
-                          </Text>
-                        </Flex>
-                      </View>
-                    )}
-                  </Flex>
-                </Well>
-              </View>
-            </Flex>
+          <Flex gap="size-100" marginTop="size-200" alignItems="center">
+            <Checkbox
+              isSelected={form.notifyRequester}
+              onChange={(isSelected) => setForm({ ...form, notifyRequester: isSelected })}
+            >
+              Notify Requester
+            </Checkbox>
           </Flex>
-        </View>
+
+          <Divider size="size-100" marginTop="size-200" marginBottom="size-200" />
+
+          <Flex gap="size-100" direction="row">
+            <Button
+              variant="primary"
+              onPress={handleSubmit}
+              isDisabled={submittedOnce && hasErrors}
+            >
+              Submit
+            </Button>
+            
+            {isFormModified && (
+              <Button
+                variant="secondary"
+                onPress={handleReset}
+              >
+                Reset
+              </Button>
+            )}
+          </Flex>
+
+          {submittedOnce && hasErrors && (
+            <View marginTop="size-100">
+              <StatusLight variant="negative">
+                Please fix the errors above before submitting.
+              </StatusLight>
+            </View>
+          )}
+        </Form>
       </View>
     </Provider>
   );
