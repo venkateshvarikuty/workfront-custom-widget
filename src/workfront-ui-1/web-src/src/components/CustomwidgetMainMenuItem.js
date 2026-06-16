@@ -77,26 +77,33 @@ const getTaskIdFromUrl = () => {
   return taskPathMatch?.[1] || '';
 };
 
+/**
+ * Builds the URL for the App Builder Runtime Action.
+ * The action acts as a server-side proxy to avoid CORS issues with Workfront.
+ */
 const getActionUrl = () => {
-  // In development, use the local action server
+  // In development, use the local AIO dev server (started by `aio app run`)
   if (window.location.hostname === 'localhost') {
-    return 'http://localhost:9090/api/v1/web/workfront-custom-widget/default/get-workfront-task';
+    return 'http://localhost:9080/api/v1/web/workfront-custom-widget/get-workfront-task';
   }
-  
-  // In production, use the deployed action URL
-  // This should be replaced with the actual deployed action URL
-  return 'https://adobeio.adobe.io/api/workfront-custom-widget/default/get-workfront-task';
+
+  // In production / staging, use the deployed Runtime action URL
+  // This matches the action_url from .aio config for the Stage workspace
+  return 'https://774367-workfrontwidget-stage.adobeioruntime.net/api/v1/web/workfront-custom-widget/get-workfront-task';
 };
 
 const getWorkfrontTaskRecord = (payload) => {
+  // Workfront API returns { data: { ... } } for a single task GET
+  if (payload?.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  // If data is an array (from /search), take the first item
   if (Array.isArray(payload?.data)) {
     return payload.data[0] || {};
   }
 
-  if (payload?.data && typeof payload.data === 'object') {
-    return payload.data;
-  }
-
+  // Fallback: maybe the payload IS the task record
   if (payload && typeof payload === 'object') {
     return payload;
   }
@@ -193,12 +200,21 @@ const CustomwidgetMainMenuItem = () => {
         const actionUrl = getActionUrl();
         console.log('[CustomWidget] Action URL:', actionUrl);
 
-        // Call the Runtime Action instead of local proxy
-        const payload = await actionWebInvoke(actionUrl, {}, { taskId });
-        
+        // Call the Runtime Action via GET with taskId as a query param.
+        // The Runtime Action will:
+        //   1. POST to the Fusion webhook to get a sessionID
+        //   2. GET the task data from Workfront using that sessionID
+        //   3. Return the task data JSON
+        const payload = await actionWebInvoke(
+          actionUrl,
+          {},
+          { taskId: nextTaskId },  // <-- use nextTaskId, NOT the state variable
+          { method: 'GET' }
+        );
+
         console.log('[CustomWidget] Action response:', payload);
 
-        // The actionWebInvoke utility already parses the response
+        // Parse if string
         let responsePayload;
         if (typeof payload === 'string') {
           try {
@@ -211,16 +227,14 @@ const CustomwidgetMainMenuItem = () => {
           responsePayload = payload;
         }
 
-        // Handle error responses from the action
-        if (responsePayload.statusCode && responsePayload.statusCode !== 200) {
-          const errorMessage = responsePayload.body?.error || `Runtime Action failed (${responsePayload.statusCode})`;
-          console.error('[CustomWidget] Action error:', errorMessage);
-          throw new Error(errorMessage);
+        // Check for error responses
+        if (responsePayload.error) {
+          console.error('[CustomWidget] Action error:', responsePayload.error);
+          throw new Error(responsePayload.error);
         }
 
-        // The actual task data is in the body field
-        const taskData = responsePayload.body || responsePayload;
-        const taskRecord = getWorkfrontTaskRecord(taskData);
+        // Extract the task record from the Workfront API response
+        const taskRecord = getWorkfrontTaskRecord(responsePayload);
         console.log('[CustomWidget] Task record:', taskRecord);
 
         if (Object.keys(taskRecord).length === 0) {
