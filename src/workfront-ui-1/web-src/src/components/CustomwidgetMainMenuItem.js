@@ -17,17 +17,11 @@ import {
   View,
   Well,
 } from '@adobe/react-spectrum';
+import actionWebInvoke from '../utils';
 
-const WORKFRONT_API_BASE_URL = 'https://origin-dluxtechapacptrsdwf.my.workfront.com/attask/api/v21.0';
-const WORKFRONT_SESSION_ID = '094fe1b2fdbc498eaaace42bfe6467c3';
-const WORKFRONT_TASK_FIELDS = [
-  'DE:Request type',
-  'DE:Request title',
-  'DE:Requested by',
-  'DE:Target date',
-  'DE:Request details',
-];
 const TASK_ID_PARAM_NAMES = ['taskId', 'taskID', 'taskid', 'task_id', 'ID', 'id', 'objID', 'objectID'];
+
+const ACTION_PATH = '/api/v1/web/workfront-custom-widget/get-workfront-task';
 
 const initialForm = {
   title: '',
@@ -49,63 +43,57 @@ const requestTypes = [
   { id: 'asset', label: 'Asset update' },
 ];
 
+/* ---------- URL / param helpers ---------- */
+
 const getParamValue = (search) => {
   const params = new URLSearchParams(search);
-
   for (const name of TASK_ID_PARAM_NAMES) {
     const value = params.get(name);
-
-    if (value?.trim()) {
-      return value.trim();
-    }
+    if (value?.trim()) return value.trim();
   }
-
   return '';
 };
 
 const getTaskIdFromUrl = () => {
   const fromSearch = getParamValue(window.location.search);
-
-  if (fromSearch) {
-    return fromSearch;
-  }
+  if (fromSearch) return fromSearch;
 
   const hash = window.location.hash || '';
   const hashQueryIndex = hash.indexOf('?');
-
   if (hashQueryIndex >= 0) {
-    const fromHashQuery = getParamValue(hash.slice(hashQueryIndex + 1));
-
-    if (fromHashQuery) {
-      return fromHashQuery;
-    }
+    const fromHash = getParamValue(hash.slice(hashQueryIndex + 1));
+    if (fromHash) return fromHash;
   }
 
-  const taskPathMatch = decodeURIComponent(window.location.href).match(/\/TASK\/([a-z0-9]+)/i);
-  return taskPathMatch?.[1] || '';
+  const match = decodeURIComponent(window.location.href).match(/\/TASK\/([a-z0-9]+)/i);
+  return match?.[1] || '';
 };
 
-const getWorkfrontTaskUrl = (taskId) => {
-  const params = new URLSearchParams({
-    fields: WORKFRONT_TASK_FIELDS.join(','),
-  });
-
-  return `${WORKFRONT_API_BASE_URL}/TASK/${encodeURIComponent(taskId)}/search?${params.toString()}`;
+/**
+ * Derive the Runtime action URL from the current hostname.
+ * In local dev (`aio app run`) the action is on localhost:9080;
+ * in deployed environments the hostname already contains the namespace.
+ */
+const getActionUrl = () => {
+  if (window.location.hostname === 'localhost') {
+    return `http://localhost:9080${ACTION_PATH}`;
+  }
+  const namespace = window.location.hostname.replace('.adobeio-static.net', '');
+  return `https://${namespace}.adobeioruntime.net${ACTION_PATH}`;
 };
+
+/* ---------- Workfront response helpers ---------- */
 
 const getWorkfrontTaskRecord = (payload) => {
+  if (payload?.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
+    return payload.data;
+  }
   if (Array.isArray(payload?.data)) {
     return payload.data[0] || {};
   }
-
-  if (payload?.data && typeof payload.data === 'object') {
-    return payload.data;
-  }
-
   if (payload && typeof payload === 'object') {
     return payload;
   }
-
   return {};
 };
 
@@ -115,59 +103,42 @@ const getWorkfrontField = (record, fieldName) => {
   const sources = [record, record?.parameterValues, record?.customData, record?.fields];
 
   for (const source of sources) {
-    if (!source || typeof source !== 'object') {
-      continue;
-    }
-
+    if (!source || typeof source !== 'object') continue;
     for (const candidate of candidates) {
       if (source[candidate] !== undefined && source[candidate] !== null) {
         return source[candidate];
       }
     }
   }
-
   return '';
 };
 
-const getTextValue = (value) => {
-  if (value === undefined || value === null) {
-    return '';
-  }
+const toText = (v) => (v === undefined || v === null ? '' : String(v).trim());
 
-  return String(value).trim();
-};
-
-const getDateValue = (value) => {
-  const textValue = getTextValue(value);
-  const dateMatch = textValue.match(/^\d{4}-\d{2}-\d{2}/);
-
-  return dateMatch?.[0] || textValue;
+const toDate = (v) => {
+  const t = toText(v);
+  return t.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || t;
 };
 
 const normalizeRequestType = (value) => {
-  const textValue = getTextValue(value);
-
-  if (!textValue) {
-    return '';
-  }
-
-  const matchedType = requestTypes.find(
-    (type) =>
-      type.id.toLowerCase() === textValue.toLowerCase() ||
-      type.label.toLowerCase() === textValue.toLowerCase()
+  const text = toText(value);
+  if (!text) return '';
+  const match = requestTypes.find(
+    (t) => t.id.toLowerCase() === text.toLowerCase() || t.label.toLowerCase() === text.toLowerCase(),
   );
-
-  return matchedType?.id || textValue;
+  return match?.id || text;
 };
 
 const mapTaskRecordToForm = (record) => ({
   ...initialForm,
-  title: getTextValue(getWorkfrontField(record, 'DE:Request title')),
+  title: toText(getWorkfrontField(record, 'DE:Request title')),
   requestType: normalizeRequestType(getWorkfrontField(record, 'DE:Request type')),
-  requestedBy: getTextValue(getWorkfrontField(record, 'DE:Requested by')),
-  dueDate: getDateValue(getWorkfrontField(record, 'DE:Target date')),
-  description: getTextValue(getWorkfrontField(record, 'DE:Request details')),
+  requestedBy: toText(getWorkfrontField(record, 'DE:Requested by')),
+  dueDate: toDate(getWorkfrontField(record, 'DE:Target date')),
+  description: toText(getWorkfrontField(record, 'DE:Request details')),
 });
+
+/* ---------- Component ---------- */
 
 const CustomwidgetMainMenuItem = () => {
   const [form, setForm] = useState(initialForm);
@@ -176,7 +147,6 @@ const CustomwidgetMainMenuItem = () => {
   const [isLoadingTask, setIsLoadingTask] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [submittedOnce, setSubmittedOnce] = useState(false);
-  const [submittedRequest, setSubmittedRequest] = useState(null);
 
   useEffect(() => {
     const nextTaskId = getTaskIdFromUrl();
@@ -187,335 +157,223 @@ const CustomwidgetMainMenuItem = () => {
       return undefined;
     }
 
-    let shouldUpdateState = true;
+    let active = true;
 
     const loadTask = async () => {
       setIsLoadingTask(true);
       setLoadError('');
 
       try {
-        const response = await fetch(getWorkfrontTaskUrl(nextTaskId), {
-          method: 'GET',
-          headers: {
-            sessionID: WORKFRONT_SESSION_ID,
-          },
-        });
-        const responseText = await response.text();
-        const payload = responseText ? JSON.parse(responseText) : {};
+        const payload = await actionWebInvoke(
+          getActionUrl(),
+          {},
+          { taskId: nextTaskId },
+          { method: 'GET' },
+        );
 
-        if (!response.ok) {
-          throw new Error(payload?.message || payload?.error?.message || `Workfront request failed (${response.status})`);
-        }
+        let data = typeof payload === 'string' ? JSON.parse(payload) : payload;
 
-        const taskRecord = getWorkfrontTaskRecord(payload);
+        if (data.error) throw new Error(data.error);
 
+        const taskRecord = getWorkfrontTaskRecord(data);
         if (Object.keys(taskRecord).length === 0) {
           throw new Error('No task details were returned for this Task ID.');
         }
 
         const nextForm = mapTaskRecordToForm(taskRecord);
 
-        if (shouldUpdateState) {
+        if (active) {
           setForm(nextForm);
           setPrefilledForm(nextForm);
           setSubmittedOnce(false);
-          setSubmittedRequest(null);
         }
       } catch (error) {
-        if (shouldUpdateState) {
+        if (active) {
           setLoadError(error.message || 'Unable to load task details from Workfront.');
         }
       } finally {
-        if (shouldUpdateState) {
-          setIsLoadingTask(false);
-        }
+        if (active) setIsLoadingTask(false);
       }
     };
 
     loadTask();
-
-    return () => {
-      shouldUpdateState = false;
-    };
+    return () => { active = false; };
   }, []);
 
   const requestTypeOptions = useMemo(() => {
-    const hasSelectedType = requestTypes.some((type) => type.id === form.requestType);
-
-    if (!form.requestType || hasSelectedType) {
-      return requestTypes;
-    }
-
+    const hasSelected = requestTypes.some((t) => t.id === form.requestType);
+    if (!form.requestType || hasSelected) return requestTypes;
     return [...requestTypes, { id: form.requestType, label: form.requestType }];
   }, [form.requestType]);
 
-  const selectedType = useMemo(
-    () => requestTypeOptions.find((type) => type.id === form.requestType),
-    [form.requestType, requestTypeOptions]
-  );
-
   const errors = useMemo(() => {
-    const nextErrors = {};
-
-    if (!form.title.trim()) {
-      nextErrors.title = 'Enter a request title.';
-    }
-
-    if (!form.requestType.trim()) {
-      nextErrors.requestType = 'Select a request type.';
-    }
-
-    if (!form.requestedBy.trim()) {
-      nextErrors.requestedBy = 'Enter the requester name.';
-    }
-
-    if (!form.dueDate.trim()) {
-      nextErrors.dueDate = 'Enter a target date.';
-    }
-
-    if (form.description.trim().length < 20) {
-      nextErrors.description = 'Add at least 20 characters of context.';
-    }
-
-    return nextErrors;
+    const e = {};
+    if (!form.title.trim()) e.title = 'Enter a request title.';
+    if (!form.requestType.trim()) e.requestType = 'Select a request type.';
+    if (!form.requestedBy.trim()) e.requestedBy = 'Enter the requester name.';
+    if (!form.dueDate.trim()) e.dueDate = 'Enter a target date.';
+    if (!form.description.trim()) e.description = 'Enter request details.';
+    return e;
   }, [form]);
 
-  const updateField = (field, value) => {
-    setForm((currentForm) => ({
-      ...currentForm,
-      [field]: value,
-    }));
-    setSubmittedRequest(null);
-  };
+  const hasErrors = Object.keys(errors).length > 0;
+  const isFormModified = JSON.stringify(form) !== JSON.stringify(prefilledForm);
 
-  const showError = (field) => submittedOnce && errors[field];
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = () => {
     setSubmittedOnce(true);
-
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
-
-    setSubmittedRequest({
-      id: `WF-FORM-${Date.now().toString().slice(-6)}`,
-      taskId,
-      ...form,
-      requestTypeLabel: selectedType?.label || form.requestType,
-      submittedAt: new Date().toLocaleString(),
-    });
+    // TODO: submit the form to your backend
   };
 
   const handleReset = () => {
     setForm(prefilledForm);
     setSubmittedOnce(false);
-    setSubmittedRequest(null);
   };
+
+  /* --- Render --- */
+
+  if (loadError) {
+    return (
+      <Provider theme={defaultTheme} colorScheme="light">
+        <View padding="size-200">
+          <Well>
+            <Text>Error: {loadError}</Text>
+          </Well>
+        </View>
+      </Provider>
+    );
+  }
+
+  if (isLoadingTask) {
+    return (
+      <Provider theme={defaultTheme} colorScheme="light">
+        <View padding="size-200">
+          <Text>Loading task details…</Text>
+        </View>
+      </Provider>
+    );
+  }
 
   return (
     <Provider theme={defaultTheme} colorScheme="light">
-      <View padding="size-400" backgroundColor="gray-50" minHeight="100vh">
-        <View
-          backgroundColor="gray-50"
-          borderColor="gray-300"
-          borderRadius="small"
-          borderWidth="thin"
-          maxWidth="960px"
-          padding="size-400"
-        >
-          <Flex direction="column" gap="size-300">
-            <Flex direction="column" gap="size-75">
-              <StatusLight variant="info">Local POC widget</StatusLight>
-              <Heading level={1} margin="size-0">
-                Workfront Task Form
-              </Heading>
-              <Text>
-                Review the task details loaded from Workfront, then complete the remaining request fields.
-              </Text>
-            </Flex>
+      <View padding="size-200">
+        <Heading level={3}>Workfront Task Request</Heading>
 
-            {(isLoadingTask || loadError || taskId) && (
-              <View
-                backgroundColor={loadError ? 'red-100' : 'blue-100'}
-                borderColor={loadError ? 'red-400' : 'blue-400'}
-                borderRadius="small"
-                borderWidth="thin"
-                padding="size-200"
-              >
-                <StatusLight variant={loadError ? 'negative' : isLoadingTask ? 'info' : 'positive'}>
-                  {loadError || (isLoadingTask ? 'Loading task details from Workfront' : `Loaded task ${taskId}`)}
-                </StatusLight>
-              </View>
-            )}
+        {taskId && (
+          <Text UNSAFE_style={{ color: '#666', marginTop: '8px', fontSize: '0.85em' }}>
+            Task ID: {taskId}
+          </Text>
+        )}
 
-            <Divider size="S" />
+        <Divider size="S" marginTop="size-200" marginBottom="size-200" />
 
-            <Flex direction={{ base: 'column', M: 'row' }} gap="size-400" alignItems="start">
-              <View flex="1 1 540px" minWidth="size-0">
-                <Form onSubmit={handleSubmit} width="100%" necessityIndicator="label">
-                  <Flex direction="column" gap="size-250">
-                    <TextField
-                      label="Request title"
-                      value={form.title}
-                      onChange={(value) => updateField('title', value)}
-                      isRequired
-                      validationState={showError('title') ? 'invalid' : undefined}
-                      errorMessage={errors.title}
-                    />
+        <Form>
+          <TextField
+            label="Title"
+            value={form.title}
+            onChange={(v) => setForm({ ...form, title: v })}
+            errorMessage={submittedOnce && errors.title ? errors.title : ''}
+            validationState={submittedOnce && errors.title ? 'invalid' : 'valid'}
+            isRequired
+          />
 
-                    <Picker
-                      label="Request type"
-                      selectedKey={form.requestType}
-                      onSelectionChange={(key) => updateField('requestType', key)}
-                      isRequired
-                      validationState={showError('requestType') ? 'invalid' : undefined}
-                      errorMessage={errors.requestType}
-                    >
-                      {requestTypeOptions.map((type) => (
-                        <Item key={type.id}>{type.label}</Item>
-                      ))}
-                    </Picker>
+          <Picker
+            label="Request Type"
+            items={requestTypeOptions}
+            selectedKey={form.requestType}
+            onSelectionChange={(key) => setForm({ ...form, requestType: key })}
+            errorMessage={submittedOnce && errors.requestType ? errors.requestType : ''}
+            validationState={submittedOnce && errors.requestType ? 'invalid' : 'valid'}
+            isRequired
+          >
+            {(item) => <Item key={item.id}>{item.label}</Item>}
+          </Picker>
 
-                    <Flex direction={{ base: 'column', M: 'row' }} gap="size-200">
-                      <TextField
-                        label="Requested by"
-                        value={form.requestedBy}
-                        onChange={(value) => updateField('requestedBy', value)}
-                        isRequired
-                        validationState={showError('requestedBy') ? 'invalid' : undefined}
-                        errorMessage={errors.requestedBy}
-                        width="100%"
-                      />
-                      <TextField
-                        label="Target date"
-                        value={form.dueDate}
-                        onChange={(value) => updateField('dueDate', value)}
-                        placeholder="YYYY-MM-DD"
-                        isRequired
-                        validationState={showError('dueDate') ? 'invalid' : undefined}
-                        errorMessage={errors.dueDate}
-                        width="100%"
-                      />
-                    </Flex>
+          <TextField
+            label="Requested By"
+            value={form.requestedBy}
+            onChange={(v) => setForm({ ...form, requestedBy: v })}
+            errorMessage={submittedOnce && errors.requestedBy ? errors.requestedBy : ''}
+            validationState={submittedOnce && errors.requestedBy ? 'invalid' : 'valid'}
+            isRequired
+          />
 
-                    <TextArea
-                      label="Request details"
-                      value={form.description}
-                      onChange={(value) => updateField('description', value)}
-                      isRequired
-                      validationState={showError('description') ? 'invalid' : undefined}
-                      errorMessage={errors.description}
-                      width="100%"
-                    />
+          <TextField
+            label="Target Date"
+            value={form.dueDate}
+            onChange={(v) => setForm({ ...form, dueDate: v })}
+            errorMessage={submittedOnce && errors.dueDate ? errors.dueDate : ''}
+            validationState={submittedOnce && errors.dueDate ? 'invalid' : 'valid'}
+            isRequired
+          />
 
-                    <Divider size="S" />
+          <TextArea
+            label="Request Details"
+            value={form.description}
+            onChange={(v) => setForm({ ...form, description: v })}
+            errorMessage={submittedOnce && errors.description ? errors.description : ''}
+            validationState={submittedOnce && errors.description ? 'invalid' : 'valid'}
+            isRequired
+          />
 
-                    <Heading level={3} margin="size-0">
-                      Additional details
-                    </Heading>
+          <TextField
+            label="Campaign Name"
+            value={form.campaignName}
+            onChange={(v) => setForm({ ...form, campaignName: v })}
+          />
 
-                    <Flex direction={{ base: 'column', M: 'row' }} gap="size-200">
-                      <TextField
-                        label="Campaign name"
-                        value={form.campaignName}
-                        onChange={(value) => updateField('campaignName', value)}
-                        width="100%"
-                      />
-                      <TextField
-                        label="Brand"
-                        value={form.brand}
-                        onChange={(value) => updateField('brand', value)}
-                        width="100%"
-                      />
-                    </Flex>
+          <TextField
+            label="Brand"
+            value={form.brand}
+            onChange={(v) => setForm({ ...form, brand: v })}
+          />
 
-                    <TextField
-                      label="Asset owner"
-                      value={form.assetOwner}
-                      onChange={(value) => updateField('assetOwner', value)}
-                      width="100%"
-                    />
+          <TextField
+            label="Asset Owner"
+            value={form.assetOwner}
+            onChange={(v) => setForm({ ...form, assetOwner: v })}
+          />
 
-                    <TextArea
-                      label="Additional notes"
-                      value={form.additionalNotes}
-                      onChange={(value) => updateField('additionalNotes', value)}
-                      width="100%"
-                    />
+          <TextArea
+            label="Additional Notes"
+            value={form.additionalNotes}
+            onChange={(v) => setForm({ ...form, additionalNotes: v })}
+          />
 
-                    <Checkbox
-                      isSelected={form.notifyRequester}
-                      onChange={(isSelected) => updateField('notifyRequester', isSelected)}
-                    >
-                      Notify requester when submitted
-                    </Checkbox>
-
-                    <Flex gap="size-150" wrap>
-                      <Button variant="accent" type="submit">
-                        Submit request
-                      </Button>
-                      <Button variant="secondary" type="button" onPress={handleReset}>
-                        Reset
-                      </Button>
-                    </Flex>
-                  </Flex>
-                </Form>
-              </View>
-
-              <View flex="1 1 320px" minWidth="size-0" width="100%">
-                <Well>
-                  <Flex direction="column" gap="size-150">
-                    <Heading level={2} margin="size-0">
-                      Draft preview
-                    </Heading>
-                    <Text>
-                      Title: {form.title || 'Untitled request'}
-                    </Text>
-                    <Text>
-                      Type: {selectedType?.label || form.requestType || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Requester: {form.requestedBy || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Target date: {form.dueDate || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Notification: {form.notifyRequester ? 'Enabled' : 'Disabled'}
-                    </Text>
-                    <Divider size="S" />
-                    <Text>
-                      Campaign: {form.campaignName || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Brand: {form.brand || 'Not provided'}
-                    </Text>
-                    <Text>
-                      Asset owner: {form.assetOwner || 'Not provided'}
-                    </Text>
-                    {submittedRequest && (
-                      <View
-                        backgroundColor="green-100"
-                        borderColor="green-400"
-                        borderRadius="small"
-                        borderWidth="thin"
-                        padding="size-200"
-                      >
-                        <Flex direction="column" gap="size-75">
-                          <StatusLight variant="positive">Ready to send</StatusLight>
-                          <Text>
-                            {submittedRequest.id} submitted at {submittedRequest.submittedAt}
-                          </Text>
-                        </Flex>
-                      </View>
-                    )}
-                  </Flex>
-                </Well>
-              </View>
-            </Flex>
+          <Flex gap="size-100" marginTop="size-200" alignItems="center">
+            <Checkbox
+              isSelected={form.notifyRequester}
+              onChange={(checked) => setForm({ ...form, notifyRequester: checked })}
+            >
+              Notify Requester
+            </Checkbox>
           </Flex>
-        </View>
+
+          <Divider size="S" marginTop="size-200" marginBottom="size-200" />
+
+          <Flex gap="size-100" direction="row">
+            <Button
+              variant="primary"
+              onPress={handleSubmit}
+              isDisabled={submittedOnce && hasErrors}
+            >
+              Submit
+            </Button>
+
+            {isFormModified && (
+              <Button variant="secondary" onPress={handleReset}>
+                Reset
+              </Button>
+            )}
+          </Flex>
+
+          {submittedOnce && hasErrors && (
+            <View marginTop="size-100">
+              <StatusLight variant="negative">
+                Please fix the errors above before submitting.
+              </StatusLight>
+            </View>
+          )}
+        </Form>
       </View>
     </Provider>
   );
