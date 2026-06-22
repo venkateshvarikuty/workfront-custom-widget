@@ -2,7 +2,6 @@
   "name": "workfrontwidget",
   "version": "0.0.1",
   "private": true,
-  "description": "Workfront Custom Widget — App Builder extension for task management",
   "dependencies": {
     "@adobe/workfront-ui-ext-tpl": "^0.0.7",
     "@adobe/aio-sdk": "^3.0.0",
@@ -13,7 +12,10 @@
     "@spectrum-icons/workflow": "^3.2.0",
     "chalk": "^4",
     "core-js": "^3.6.4",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
     "node-fetch": "^2.6.0",
+    "node-html-parser": "^5.4.2-0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-error-boundary": "^1.2.5",
@@ -38,8 +40,10 @@
     "e2e": "jest --collectCoverage=false --testRegex ./e2e",
     "lint": "eslint --ignore-pattern web-src --no-error-on-unmatched-pattern test src actions",
     "lint:fix": "npm run lint -- --fix",
-    "transform:yaml-to-json": "node node_modules/@adobe/uix-guest/scripts/generate-metadata.js"
+    "transform:yaml-to-json": "node node_modules/@adobe/uix-guest/scripts/generate-metadata.js",
+    "proxy": "node src/local-proxy/server.js"
   },
+  "description": "POC widget",
   "aio-app-builder-templates": [
     "@adobe/workfront-ui-ext-tpl"
   ]

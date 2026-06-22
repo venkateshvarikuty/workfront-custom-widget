@@ -1,7 +1,7 @@
 {
   "name": "workfront-custom-widget",
   "id": "workfront-custom-widget",
-  "description": "Workfront Custom Widget for task management",
+  "description": "POC widget",
   "version": "0.0.1",
   "widgets": [
     {
