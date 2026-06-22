@@ -21,6 +21,8 @@ import actionWebInvoke from '../utils';
 
 const TASK_ID_PARAM_NAMES = ['taskId', 'taskID', 'taskid', 'task_id', 'ID', 'id', 'objID', 'objectID'];
 
+const ACTION_PATH = '/api/v1/web/workfront-custom-widget/get-workfront-task';
+
 const initialForm = {
   title: '',
   requestType: '',
@@ -41,73 +43,57 @@ const requestTypes = [
   { id: 'asset', label: 'Asset update' },
 ];
 
+/* ---------- URL / param helpers ---------- */
+
 const getParamValue = (search) => {
   const params = new URLSearchParams(search);
-
   for (const name of TASK_ID_PARAM_NAMES) {
     const value = params.get(name);
-
-    if (value?.trim()) {
-      return value.trim();
-    }
+    if (value?.trim()) return value.trim();
   }
-
   return '';
 };
 
 const getTaskIdFromUrl = () => {
   const fromSearch = getParamValue(window.location.search);
-
-  if (fromSearch) {
-    return fromSearch;
-  }
+  if (fromSearch) return fromSearch;
 
   const hash = window.location.hash || '';
   const hashQueryIndex = hash.indexOf('?');
-
   if (hashQueryIndex >= 0) {
-    const fromHashQuery = getParamValue(hash.slice(hashQueryIndex + 1));
-
-    if (fromHashQuery) {
-      return fromHashQuery;
-    }
+    const fromHash = getParamValue(hash.slice(hashQueryIndex + 1));
+    if (fromHash) return fromHash;
   }
 
-  const taskPathMatch = decodeURIComponent(window.location.href).match(/\/TASK\/([a-z0-9]+)/i);
-  return taskPathMatch?.[1] || '';
+  const match = decodeURIComponent(window.location.href).match(/\/TASK\/([a-z0-9]+)/i);
+  return match?.[1] || '';
 };
 
 /**
- * Builds the URL for the App Builder Runtime Action.
- * The action acts as a server-side proxy to avoid CORS issues with Workfront.
+ * Derive the Runtime action URL from the current hostname.
+ * In local dev (`aio app run`) the action is on localhost:9080;
+ * in deployed environments the hostname already contains the namespace.
  */
 const getActionUrl = () => {
-  // In development, use the local AIO dev server (started by `aio app run`)
   if (window.location.hostname === 'localhost') {
-    return 'http://localhost:9080/api/v1/web/workfront-custom-widget/get-workfront-task';
+    return `http://localhost:9080${ACTION_PATH}`;
   }
-
-  // In production / staging, use the deployed Runtime action URL
-  // This matches the action_url from .aio config for the Stage workspace
-  return 'https://774367-workfrontwidget-stage.adobeioruntime.net/api/v1/web/workfront-custom-widget/get-workfront-task';
+  const namespace = window.location.hostname.replace('.adobeio-static.net', '');
+  return `https://${namespace}.adobeioruntime.net${ACTION_PATH}`;
 };
 
+/* ---------- Workfront response helpers ---------- */
+
 const getWorkfrontTaskRecord = (payload) => {
-  // Workfront API returns { data: { ... } } for a single task GET
   if (payload?.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
     return payload.data;
   }
-
-  // If data is an array (from /search), take the first item
   if (Array.isArray(payload?.data)) {
     return payload.data[0] || {};
   }
-
-  // Fallback: maybe the payload IS the task record
   if (payload && typeof payload === 'object') {
     return payload;
   }
-
   return {};
 };
 
@@ -117,59 +103,42 @@ const getWorkfrontField = (record, fieldName) => {
   const sources = [record, record?.parameterValues, record?.customData, record?.fields];
 
   for (const source of sources) {
-    if (!source || typeof source !== 'object') {
-      continue;
-    }
-
+    if (!source || typeof source !== 'object') continue;
     for (const candidate of candidates) {
       if (source[candidate] !== undefined && source[candidate] !== null) {
         return source[candidate];
       }
     }
   }
-
   return '';
 };
 
-const getTextValue = (value) => {
-  if (value === undefined || value === null) {
-    return '';
-  }
+const toText = (v) => (v === undefined || v === null ? '' : String(v).trim());
 
-  return String(value).trim();
-};
-
-const getDateValue = (value) => {
-  const textValue = getTextValue(value);
-  const dateMatch = textValue.match(/^\d{4}-\d{2}-\d{2}/);
-
-  return dateMatch?.[0] || textValue;
+const toDate = (v) => {
+  const t = toText(v);
+  return t.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || t;
 };
 
 const normalizeRequestType = (value) => {
-  const textValue = getTextValue(value);
-
-  if (!textValue) {
-    return '';
-  }
-
-  const matchedType = requestTypes.find(
-    (type) =>
-      type.id.toLowerCase() === textValue.toLowerCase() ||
-      type.label.toLowerCase() === textValue.toLowerCase()
+  const text = toText(value);
+  if (!text) return '';
+  const match = requestTypes.find(
+    (t) => t.id.toLowerCase() === text.toLowerCase() || t.label.toLowerCase() === text.toLowerCase(),
   );
-
-  return matchedType?.id || textValue;
+  return match?.id || text;
 };
 
 const mapTaskRecordToForm = (record) => ({
   ...initialForm,
-  title: getTextValue(getWorkfrontField(record, 'DE:Request title')),
+  title: toText(getWorkfrontField(record, 'DE:Request title')),
   requestType: normalizeRequestType(getWorkfrontField(record, 'DE:Request type')),
-  requestedBy: getTextValue(getWorkfrontField(record, 'DE:Requested by')),
-  dueDate: getDateValue(getWorkfrontField(record, 'DE:Target date')),
-  description: getTextValue(getWorkfrontField(record, 'DE:Request details')),
+  requestedBy: toText(getWorkfrontField(record, 'DE:Requested by')),
+  dueDate: toDate(getWorkfrontField(record, 'DE:Target date')),
+  description: toText(getWorkfrontField(record, 'DE:Request details')),
 });
+
+/* ---------- Component ---------- */
 
 const CustomwidgetMainMenuItem = () => {
   const [form, setForm] = useState(initialForm);
@@ -178,7 +147,6 @@ const CustomwidgetMainMenuItem = () => {
   const [isLoadingTask, setIsLoadingTask] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [submittedOnce, setSubmittedOnce] = useState(false);
-  const [submittedRequest, setSubmittedRequest] = useState(null);
 
   useEffect(() => {
     const nextTaskId = getTaskIdFromUrl();
@@ -189,125 +157,63 @@ const CustomwidgetMainMenuItem = () => {
       return undefined;
     }
 
-    let shouldUpdateState = true;
+    let active = true;
 
     const loadTask = async () => {
       setIsLoadingTask(true);
       setLoadError('');
 
       try {
-        console.log('[CustomWidget] Loading task with ID:', nextTaskId);
-        const actionUrl = getActionUrl();
-        console.log('[CustomWidget] Action URL:', actionUrl);
-
-        // Call the Runtime Action via GET with taskId as a query param.
-        // The Runtime Action will:
-        //   1. POST to the Fusion webhook to get a sessionID
-        //   2. GET the task data from Workfront using that sessionID
-        //   3. Return the task data JSON
         const payload = await actionWebInvoke(
-          actionUrl,
+          getActionUrl(),
           {},
-          { taskId: nextTaskId },  // <-- use nextTaskId, NOT the state variable
-          { method: 'GET' }
+          { taskId: nextTaskId },
+          { method: 'GET' },
         );
 
-        console.log('[CustomWidget] Action response:', payload);
+        let data = typeof payload === 'string' ? JSON.parse(payload) : payload;
 
-        // Parse if string
-        let responsePayload;
-        if (typeof payload === 'string') {
-          try {
-            responsePayload = JSON.parse(payload);
-          } catch (e) {
-            console.error('[CustomWidget] JSON parse error:', e);
-            throw new Error('Invalid response from Runtime Action.');
-          }
-        } else {
-          responsePayload = payload;
-        }
+        if (data.error) throw new Error(data.error);
 
-        // Check for error responses
-        if (responsePayload.error) {
-          console.error('[CustomWidget] Action error:', responsePayload.error);
-          throw new Error(responsePayload.error);
-        }
-
-        // Extract the task record from the Workfront API response
-        const taskRecord = getWorkfrontTaskRecord(responsePayload);
-        console.log('[CustomWidget] Task record:', taskRecord);
-
+        const taskRecord = getWorkfrontTaskRecord(data);
         if (Object.keys(taskRecord).length === 0) {
           throw new Error('No task details were returned for this Task ID.');
         }
 
         const nextForm = mapTaskRecordToForm(taskRecord);
-        console.log('[CustomWidget] Mapped form:', nextForm);
 
-        if (shouldUpdateState) {
+        if (active) {
           setForm(nextForm);
           setPrefilledForm(nextForm);
           setSubmittedOnce(false);
-          setSubmittedRequest(null);
         }
       } catch (error) {
-        console.error('[CustomWidget] Load task error:', error);
-        if (shouldUpdateState) {
+        if (active) {
           setLoadError(error.message || 'Unable to load task details from Workfront.');
         }
       } finally {
-        if (shouldUpdateState) {
-          setIsLoadingTask(false);
-        }
+        if (active) setIsLoadingTask(false);
       }
     };
 
     loadTask();
-
-    return () => {
-      shouldUpdateState = false;
-    };
+    return () => { active = false; };
   }, []);
 
   const requestTypeOptions = useMemo(() => {
-    const hasSelectedType = requestTypes.some((type) => type.id === form.requestType);
-
-    if (!form.requestType || hasSelectedType) {
-      return requestTypes;
-    }
-
+    const hasSelected = requestTypes.some((t) => t.id === form.requestType);
+    if (!form.requestType || hasSelected) return requestTypes;
     return [...requestTypes, { id: form.requestType, label: form.requestType }];
   }, [form.requestType]);
 
-  const selectedType = useMemo(
-    () => requestTypeOptions.find((type) => type.id === form.requestType),
-    [form.requestType, requestTypeOptions]
-  );
-
   const errors = useMemo(() => {
-    const nextErrors = {};
-
-    if (!form.title.trim()) {
-      nextErrors.title = 'Enter a request title.';
-    }
-
-    if (!form.requestType.trim()) {
-      nextErrors.requestType = 'Select a request type.';
-    }
-
-    if (!form.requestedBy.trim()) {
-      nextErrors.requestedBy = 'Enter the requester name.';
-    }
-
-    if (!form.dueDate.trim()) {
-      nextErrors.dueDate = 'Enter a target date.';
-    }
-
-    if (!form.description.trim()) {
-      nextErrors.description = 'Enter request details.';
-    }
-
-    return nextErrors;
+    const e = {};
+    if (!form.title.trim()) e.title = 'Enter a request title.';
+    if (!form.requestType.trim()) e.requestType = 'Select a request type.';
+    if (!form.requestedBy.trim()) e.requestedBy = 'Enter the requester name.';
+    if (!form.dueDate.trim()) e.dueDate = 'Enter a target date.';
+    if (!form.description.trim()) e.description = 'Enter request details.';
+    return e;
   }, [form]);
 
   const hasErrors = Object.keys(errors).length > 0;
@@ -315,18 +221,15 @@ const CustomwidgetMainMenuItem = () => {
 
   const handleSubmit = () => {
     setSubmittedOnce(true);
-    setSubmittedRequest(form);
-
-    // Here you would typically submit the form to your backend
-    console.log('[CustomWidget] Form submitted:', form);
-    alert('Form submitted successfully!');
+    // TODO: submit the form to your backend
   };
 
   const handleReset = () => {
     setForm(prefilledForm);
     setSubmittedOnce(false);
-    setSubmittedRequest(null);
   };
+
+  /* --- Render --- */
 
   if (loadError) {
     return (
@@ -344,7 +247,7 @@ const CustomwidgetMainMenuItem = () => {
     return (
       <Provider theme={defaultTheme} colorScheme="light">
         <View padding="size-200">
-          <Text>Loading task details...</Text>
+          <Text>Loading task details…</Text>
         </View>
       </Provider>
     );
@@ -354,20 +257,20 @@ const CustomwidgetMainMenuItem = () => {
     <Provider theme={defaultTheme} colorScheme="light">
       <View padding="size-200">
         <Heading level={3}>Workfront Task Request</Heading>
-        
+
         {taskId && (
-          <Text size="small" UNSAFE_style={{ color: '#666', marginTop: '8px' }}>
+          <Text UNSAFE_style={{ color: '#666', marginTop: '8px', fontSize: '0.85em' }}>
             Task ID: {taskId}
           </Text>
         )}
 
-        <Divider size="size-100" marginTop="size-200" marginBottom="size-200" />
+        <Divider size="S" marginTop="size-200" marginBottom="size-200" />
 
         <Form>
           <TextField
             label="Title"
             value={form.title}
-            onChange={(value) => setForm({ ...form, title: value })}
+            onChange={(v) => setForm({ ...form, title: v })}
             errorMessage={submittedOnce && errors.title ? errors.title : ''}
             validationState={submittedOnce && errors.title ? 'invalid' : 'valid'}
             isRequired
@@ -388,7 +291,7 @@ const CustomwidgetMainMenuItem = () => {
           <TextField
             label="Requested By"
             value={form.requestedBy}
-            onChange={(value) => setForm({ ...form, requestedBy: value })}
+            onChange={(v) => setForm({ ...form, requestedBy: v })}
             errorMessage={submittedOnce && errors.requestedBy ? errors.requestedBy : ''}
             validationState={submittedOnce && errors.requestedBy ? 'invalid' : 'valid'}
             isRequired
@@ -397,7 +300,7 @@ const CustomwidgetMainMenuItem = () => {
           <TextField
             label="Target Date"
             value={form.dueDate}
-            onChange={(value) => setForm({ ...form, dueDate: value })}
+            onChange={(v) => setForm({ ...form, dueDate: v })}
             errorMessage={submittedOnce && errors.dueDate ? errors.dueDate : ''}
             validationState={submittedOnce && errors.dueDate ? 'invalid' : 'valid'}
             isRequired
@@ -406,48 +309,46 @@ const CustomwidgetMainMenuItem = () => {
           <TextArea
             label="Request Details"
             value={form.description}
-            onChange={(value) => setForm({ ...form, description: value })}
+            onChange={(v) => setForm({ ...form, description: v })}
             errorMessage={submittedOnce && errors.description ? errors.description : ''}
             validationState={submittedOnce && errors.description ? 'invalid' : 'valid'}
             isRequired
-            height="style-size-200"
           />
 
           <TextField
             label="Campaign Name"
             value={form.campaignName}
-            onChange={(value) => setForm({ ...form, campaignName: value })}
+            onChange={(v) => setForm({ ...form, campaignName: v })}
           />
 
           <TextField
             label="Brand"
             value={form.brand}
-            onChange={(value) => setForm({ ...form, brand: value })}
+            onChange={(v) => setForm({ ...form, brand: v })}
           />
 
           <TextField
             label="Asset Owner"
             value={form.assetOwner}
-            onChange={(value) => setForm({ ...form, assetOwner: value })}
+            onChange={(v) => setForm({ ...form, assetOwner: v })}
           />
 
           <TextArea
             label="Additional Notes"
             value={form.additionalNotes}
-            onChange={(value) => setForm({ ...form, additionalNotes: value })}
-            height="style-size-200"
+            onChange={(v) => setForm({ ...form, additionalNotes: v })}
           />
 
           <Flex gap="size-100" marginTop="size-200" alignItems="center">
             <Checkbox
               isSelected={form.notifyRequester}
-              onChange={(isSelected) => setForm({ ...form, notifyRequester: isSelected })}
+              onChange={(checked) => setForm({ ...form, notifyRequester: checked })}
             >
               Notify Requester
             </Checkbox>
           </Flex>
 
-          <Divider size="size-100" marginTop="size-200" marginBottom="size-200" />
+          <Divider size="S" marginTop="size-200" marginBottom="size-200" />
 
           <Flex gap="size-100" direction="row">
             <Button
@@ -457,12 +358,9 @@ const CustomwidgetMainMenuItem = () => {
             >
               Submit
             </Button>
-            
+
             {isFormModified && (
-              <Button
-                variant="secondary"
-                onPress={handleReset}
-              >
+              <Button variant="secondary" onPress={handleReset}>
                 Reset
               </Button>
             )}

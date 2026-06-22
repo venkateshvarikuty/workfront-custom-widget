@@ -1,7 +1,0 @@
-App metadata generated successfully
-
-To view your local application:
-  -> https://localhost:9080
-To view your deployed application in the Experience Cloud shell:
-  -> https://experience.adobe.com/?devMode=true#/custom-apps/?localDevUrl=https://localhost:9080
-press CTRL+C to terminate dev environment
