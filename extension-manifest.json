@@ -31,6 +31,22 @@
         "currency",
         "number"
       ]
+    },
+    {
+      "id": "in-aisle-form",
+      "label": "IN AISLE Form",
+      "type": "formFieldWidget",
+      "url": "/index.html#/in-aisle-form",
+      "description": "IN AISLE content brief form for Workfront field extension",
+      "supportedFieldTypes": [
+        "text",
+        "paragraph",
+        "dropdown",
+        "checkbox",
+        "date",
+        "currency",
+        "number"
+      ]
     }
   ]
 }
