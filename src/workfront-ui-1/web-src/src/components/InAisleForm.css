@@ -1,0 +1,270 @@
+.aisle-form-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+}
+
+/* Header Section */
+.aisle-header {
+  background: linear-gradient(135deg, #3B4A54 0%, #4A5A68 100%);
+  color: white;
+  padding: 32px 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.aisle-header::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 300px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 0.3;
+}
+
+.aisle-header-content {
+  position: relative;
+  z-index: 1;
+}
+
+.aisle-logo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.aisle-logo::first-letter {
+  color: #9BC000;
+}
+
+.aisle-header-title {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.aisle-header-subtitle {
+  font-size: 13px;
+  margin: 0;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+/* Form Content */
+.aisle-form-content {
+  background-color: white;
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Section Styling */
+.aisle-section {
+  margin-bottom: 40px;
+}
+
+.aisle-section:last-child {
+  margin-bottom: 20px;
+}
+
+.aisle-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #9BC000;
+  margin: 0 0 20px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #9BC000;
+}
+
+/* Field Layout */
+.aisle-field-row {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.aisle-field-half {
+  flex: 1;
+  min-width: 280px;
+}
+
+.aisle-field-full {
+  flex: 1 0 100%;
+}
+
+/* Label Styling */
+.aisle-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #3B4A54;
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+}
+
+.aisle-helper-text {
+  display: block;
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+  margin-bottom: 8px;
+  margin-top: -4px;
+}
+
+.aisle-description {
+  font-size: 13px;
+  color: #3B4A54;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+  font-weight: 400;
+}
+
+.aisle-list {
+  margin: 12px 0 16px 20px;
+  padding: 0;
+  list-style-type: disc;
+}
+
+.aisle-list li {
+  font-size: 13px;
+  color: #3B4A54;
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
+
+/* Input and Textarea Styling */
+.aisle-input,
+.aisle-textarea {
+  background-color: #E8EBF5 !important;
+  border: 1px solid #D5DAED !important;
+  border-radius: 3px;
+  padding: 10px 12px !important;
+  font-size: 13px;
+  color: #3B4A54;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.aisle-input:focus,
+.aisle-textarea:focus {
+  background-color: #F0F3FA !important;
+  border-color: #9BC000 !important;
+  outline: none;
+}
+
+.aisle-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+/* Form Group Styling */
+.aisle-form-content form {
+  width: 100%;
+}
+
+.aisle-form-content .spectrum-TextField,
+.aisle-form-content .spectrum-Picker,
+.aisle-form-content .spectrum-TextArea {
+  width: 100%;
+}
+
+.aisle-form-content .spectrum-TextField input,
+.aisle-form-content .spectrum-TextArea textarea {
+  background-color: #E8EBF5 !important;
+  border: 1px solid #D5DAED !important;
+  border-radius: 3px;
+  padding: 10px 12px !important;
+  font-size: 13px;
+  color: #3B4A54;
+}
+
+.aisle-form-content .spectrum-TextField input:focus,
+.aisle-form-content .spectrum-TextField input:active,
+.aisle-form-content .spectrum-TextArea textarea:focus,
+.aisle-form-content .spectrum-TextArea textarea:active {
+  background-color: #F0F3FA !important;
+  border-color: #9BC000 !important;
+}
+
+/* Picker/Dropdown Styling */
+.aisle-form-content .spectrum-Picker {
+  width: 100%;
+}
+
+.aisle-form-content .spectrum-Picker .spectrum-Picker-label {
+  background-color: #E8EBF5 !important;
+  border: 1px solid #D5DAED !important;
+}
+
+/* Button Styling */
+.aisle-buttons {
+  padding-top: 20px;
+  border-top: 1px solid #E8EBF5;
+  margin-top: 30px;
+}
+
+.aisle-buttons .spectrum-Button {
+  padding: 10px 24px;
+  font-weight: 600;
+}
+
+.aisle-buttons .spectrum-Button--cta {
+  background-color: #9BC000 !important;
+  border-color: #9BC000 !important;
+}
+
+.aisle-buttons .spectrum-Button--cta:hover {
+  background-color: #87a800 !important;
+  border-color: #87a800 !important;
+}
+
+/* Checkbox Styling */
+.aisle-form-content .spectrum-Checkbox {
+  margin-bottom: 16px;
+}
+
+.aisle-form-content .spectrum-Checkbox-label {
+  font-size: 13px;
+  color: #3B4A54;
+}
+
+
+/* Status Light */
+.aisle-form-content .spectrum-StatusLight {
+  margin-top: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .aisle-form-content {
+    padding: 24px;
+  }
+
+  .aisle-field-row {
+    gap: 16px;
+  }
+
+  .aisle-header {
+    padding: 24px;
+  }
+
+  .aisle-header-title {
+    font-size: 24px;
+  }
+
+  .aisle-header-subtitle {
+    font-size: 12px;
+  }
+}

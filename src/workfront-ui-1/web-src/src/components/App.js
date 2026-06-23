@@ -3,6 +3,9 @@ import ErrorBoundary from 'react-error-boundary';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import ExtensionRegistration from './ExtensionRegistration';
 import Customwidget from './CustomwidgetMainMenuItem';
+import FormFieldWidget from './FormFieldWidget';
+import InAisleForm from './InAisleForm';
+import ScreenNetworkBrief from './ScreenNetworkBrief';
 
 function App() {
   return (
@@ -12,6 +15,9 @@ function App() {
           <Route index element={<ExtensionRegistration />} />
           <Route exact path="index.html" element={<ExtensionRegistration />} />
           <Route exact path="custom-widget" element={<Customwidget />} />
+          <Route exact path="form-field-widget" element={<FormFieldWidget />} />
+          <Route exact path="in-aisle-form" element={<InAisleForm />} />
+          <Route exact path="screen-network-brief" element={<ScreenNetworkBrief />} />
         </Routes>
       </ErrorBoundary>
     </Router>
