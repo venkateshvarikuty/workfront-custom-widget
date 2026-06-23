@@ -1,0 +1,209 @@
+{
+  "title": "Screen Network - Content Brief",
+  "sections": [
+    {
+      "title": "General Information",
+      "fields": [
+        {
+          "type": "text",
+          "name": "client",
+          "label": "Client(s)",
+          "required": true,
+          "workfrontField": "DE:Client(s)"
+        },
+        {
+          "type": "text",
+          "name": "brandProduct",
+          "label": "Brand/Product",
+          "required": true,
+          "workfrontField": "DE:Brand/Product"
+        },
+        {
+          "type": "date",
+          "name": "inMarketDate",
+          "label": "In Market Date",
+          "required": false,
+          "workfrontField": "DE:In Market Date"
+        },
+        {
+          "type": "text",
+          "name": "clientContact",
+          "label": "Client Contact",
+          "required": false,
+          "workfrontField": "DE:Client Contact"
+        },
+        {
+          "type": "dropdown",
+          "name": "commPillarTemplate",
+          "label": "Communication Pillar Template",
+          "required": false,
+          "workfrontField": "DE:Communication Pillar Template",
+          "options": [
+            { "id": "template_1", "label": "Template 1" },
+            { "id": "template_2", "label": "Template 2" },
+            { "id": "template_3", "label": "Template 3" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "name": "screenContentOption",
+          "label": "Screen Content Option",
+          "required": false,
+          "workfrontField": "DE:Screen Content Option",
+          "options": [
+            { "id": "option_1", "label": "Option 1" },
+            { "id": "option_2", "label": "Option 2" }
+          ]
+        },
+        {
+          "type": "text",
+          "name": "other",
+          "label": "Other",
+          "required": false,
+          "workfrontField": "DE:Other"
+        },
+        {
+          "type": "textarea",
+          "name": "supportingAssets",
+          "label": "Supporting Cartology Assets Booked",
+          "required": false,
+          "workfrontField": "DE:Supporting Cartology Assets Booked"
+        }
+      ]
+    },
+    {
+      "title": "Product / Promotional Details",
+      "fields": [
+        {
+          "type": "text",
+          "name": "heroProduct",
+          "label": "Hero Product Name / SKU Number",
+          "required": true,
+          "workfrontField": "DE:Hero Product Name / SKU Number"
+        },
+        {
+          "type": "text",
+          "name": "rangedStoresPercentage",
+          "label": "Percentage of Stores Products Ranged In",
+          "required": false,
+          "workfrontField": "DE:Percentage of Stores Products Ranged In"
+        },
+        {
+          "type": "textarea",
+          "name": "productDescriptionSize",
+          "label": "Full Product Description and Size",
+          "required": false,
+          "workfrontField": "DE:Full Product Description and Size"
+        },
+        {
+          "type": "textarea",
+          "name": "additionalSkus",
+          "label": "Additional SKUs to be Featured",
+          "required": false,
+          "workfrontField": "DE:Additional SKUs to be Featured"
+        },
+        {
+          "type": "textarea",
+          "name": "promotionDetails",
+          "label": "Promotion Details",
+          "required": true,
+          "workfrontField": "DE:Promotion Details"
+        },
+        {
+          "type": "text",
+          "name": "departmentStocked",
+          "label": "Department Product Stocked In",
+          "required": false,
+          "workfrontField": "DE:Department Product Stocked In"
+        },
+        {
+          "type": "text",
+          "name": "promotionDates",
+          "label": "Promotion Dates",
+          "required": false,
+          "workfrontField": "DE:Promotion Dates"
+        }
+      ]
+    },
+    {
+      "title": "Product Claims",
+      "fields": [
+        {
+          "type": "textarea",
+          "name": "productClaims",
+          "label": "Product Claims",
+          "required": false,
+          "workfrontField": "DE:Product Claims"
+        },
+        {
+          "type": "textarea",
+          "name": "claimsFeatured",
+          "label": "Claims Featured On Screen / Product Packaging",
+          "required": false,
+          "workfrontField": "DE:Claims Featured On Screen / Product Packaging"
+        }
+      ]
+    },
+    {
+      "title": "Third Party References",
+      "fields": [
+        {
+          "type": "textarea",
+          "name": "thirdPartyReferences",
+          "label": "Third Party References",
+          "required": false,
+          "workfrontField": "DE:Third Party References"
+        }
+      ]
+    },
+    {
+      "title": "Therapeutic Goods",
+      "fields": [
+        {
+          "type": "textarea",
+          "name": "therapeuticGoodsInfo",
+          "label": "Therapeutic Goods Information",
+          "required": false,
+          "workfrontField": "DE:Therapeutic Goods Information"
+        }
+      ]
+    },
+    {
+      "title": "On Screen Disclaimers",
+      "fields": [
+        {
+          "type": "textarea",
+          "name": "disclaimers",
+          "label": "Disclaimers",
+          "required": false,
+          "workfrontField": "DE:Disclaimers"
+        },
+        {
+          "type": "textarea",
+          "name": "warningsDisclaimers",
+          "label": "Relevant Warnings and Disclaimers",
+          "required": false,
+          "workfrontField": "DE:Relevant Warnings and Disclaimers"
+        },
+        {
+          "type": "textarea",
+          "name": "brandDisclaimers",
+          "label": "Supplier Brand/Product Disclaimers",
+          "required": false,
+          "workfrontField": "DE:Supplier Brand/Product Disclaimers"
+        }
+      ]
+    },
+    {
+      "title": "Acknowledgement",
+      "fields": [
+        {
+          "type": "checkbox",
+          "name": "acknowledge",
+          "label": "I confirm and warrant that the content provided complies with the requirements listed above.",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

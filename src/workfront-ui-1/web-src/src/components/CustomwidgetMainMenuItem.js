@@ -1,47 +1,36 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Button,
-  Checkbox,
   defaultTheme,
   Divider,
   Flex,
   Form,
   Heading,
-  Item,
-  Picker,
   Provider,
   StatusLight,
   Text,
-  TextArea,
-  TextField,
   View,
   Well,
 } from '@adobe/react-spectrum';
 import actionWebInvoke from '../utils';
+import formConfig from '../forms/generic-form.json';
+import FormRenderer from './FormRenderer';
 
 const TASK_ID_PARAM_NAMES = ['taskId', 'taskID', 'taskid', 'task_id', 'ID', 'id', 'objID', 'objectID'];
 
 const ACTION_PATH = '/api/v1/web/workfront-custom-widget/get-workfront-task';
 
-const initialForm = {
-  title: '',
-  requestType: '',
-  requestedBy: '',
-  dueDate: '',
-  description: '',
-  campaignName: '',
-  brand: '',
-  assetOwner: '',
-  additionalNotes: '',
-  notifyRequester: true,
+const getInitialFormState = (config) => {
+  const state = {};
+  config.sections.forEach((section) => {
+    section.fields.forEach((field) => {
+      state[field.name] = field.defaultValue !== undefined ? field.defaultValue : (field.type === 'checkbox' ? false : '');
+    });
+  });
+  return state;
 };
 
-const requestTypes = [
-  { id: 'general', label: 'General request' },
-  { id: 'creative', label: 'Creative brief' },
-  { id: 'approval', label: 'Approval request' },
-  { id: 'asset', label: 'Asset update' },
-];
+const initialForm = getInitialFormState(formConfig);
 
 /* ---------- URL / param helpers ---------- */
 
@@ -120,23 +109,26 @@ const toDate = (v) => {
   return t.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || t;
 };
 
-const normalizeRequestType = (value) => {
-  const text = toText(value);
-  if (!text) return '';
-  const match = requestTypes.find(
-    (t) => t.id.toLowerCase() === text.toLowerCase() || t.label.toLowerCase() === text.toLowerCase(),
-  );
-  return match?.id || text;
+const mapTaskRecordToForm = (record, config) => {
+  const mapped = {};
+  config.sections.forEach((section) => {
+    section.fields.forEach((field) => {
+      if (field.workfrontField) {
+        const rawValue = getWorkfrontField(record, field.workfrontField);
+        if (field.type === 'date') {
+          mapped[field.name] = toDate(rawValue);
+        } else if (field.type === 'checkbox') {
+          mapped[field.name] = rawValue === true || String(rawValue).toLowerCase() === 'true';
+        } else {
+          mapped[field.name] = toText(rawValue);
+        }
+      } else {
+        mapped[field.name] = field.defaultValue !== undefined ? field.defaultValue : (field.type === 'checkbox' ? false : '');
+      }
+    });
+  });
+  return mapped;
 };
-
-const mapTaskRecordToForm = (record) => ({
-  ...initialForm,
-  title: toText(getWorkfrontField(record, 'DE:Request title')),
-  requestType: normalizeRequestType(getWorkfrontField(record, 'DE:Request type')),
-  requestedBy: toText(getWorkfrontField(record, 'DE:Requested by')),
-  dueDate: toDate(getWorkfrontField(record, 'DE:Target date')),
-  description: toText(getWorkfrontField(record, 'DE:Request details')),
-});
 
 /* ---------- Component ---------- */
 
@@ -180,7 +172,7 @@ const CustomwidgetMainMenuItem = () => {
           throw new Error('No task details were returned for this Task ID.');
         }
 
-        const nextForm = mapTaskRecordToForm(taskRecord);
+        const nextForm = mapTaskRecordToForm(taskRecord, formConfig);
 
         if (active) {
           setForm(nextForm);
@@ -200,19 +192,22 @@ const CustomwidgetMainMenuItem = () => {
     return () => { active = false; };
   }, []);
 
-  const requestTypeOptions = useMemo(() => {
-    const hasSelected = requestTypes.some((t) => t.id === form.requestType);
-    if (!form.requestType || hasSelected) return requestTypes;
-    return [...requestTypes, { id: form.requestType, label: form.requestType }];
-  }, [form.requestType]);
-
   const errors = useMemo(() => {
     const e = {};
-    if (!form.title.trim()) e.title = 'Enter a request title.';
-    if (!form.requestType.trim()) e.requestType = 'Select a request type.';
-    if (!form.requestedBy.trim()) e.requestedBy = 'Enter the requester name.';
-    if (!form.dueDate.trim()) e.dueDate = 'Enter a target date.';
-    if (!form.description.trim()) e.description = 'Enter request details.';
+    formConfig.sections.forEach((section) => {
+      section.fields.forEach((field) => {
+        if (field.required) {
+          const val = form[field.name];
+          if (field.type === 'checkbox') {
+            if (!val) {
+              e[field.name] = `${field.label} must be selected.`;
+            }
+          } else if (typeof val !== 'string' || !val.trim()) {
+            e[field.name] = `Enter a valid ${field.label.toLowerCase()}.`;
+          }
+        }
+      });
+    });
     return e;
   }, [form]);
 
@@ -221,7 +216,10 @@ const CustomwidgetMainMenuItem = () => {
 
   const handleSubmit = () => {
     setSubmittedOnce(true);
-    // TODO: submit the form to your backend
+    if (!hasErrors) {
+      console.log('Submitting Form Data:', form);
+      // TODO: submit the form to your backend
+    }
   };
 
   const handleReset = () => {
@@ -256,7 +254,7 @@ const CustomwidgetMainMenuItem = () => {
   return (
     <Provider theme={defaultTheme} colorScheme="light">
       <View padding="size-200">
-        <Heading level={3}>Workfront Task Request</Heading>
+        <Heading level={3}>{formConfig.title}</Heading>
 
         {taskId && (
           <Text UNSAFE_style={{ color: '#666', marginTop: '8px', fontSize: '0.85em' }}>
@@ -267,86 +265,13 @@ const CustomwidgetMainMenuItem = () => {
         <Divider size="S" marginTop="size-200" marginBottom="size-200" />
 
         <Form>
-          <TextField
-            label="Title"
-            value={form.title}
-            onChange={(v) => setForm({ ...form, title: v })}
-            errorMessage={submittedOnce && errors.title ? errors.title : ''}
-            validationState={submittedOnce && errors.title ? 'invalid' : 'valid'}
-            isRequired
+          <FormRenderer
+            config={formConfig}
+            formData={form}
+            onChange={(name, val) => setForm({ ...form, [name]: val })}
+            errors={errors}
+            submittedOnce={submittedOnce}
           />
-
-          <Picker
-            label="Request Type"
-            items={requestTypeOptions}
-            selectedKey={form.requestType}
-            onSelectionChange={(key) => setForm({ ...form, requestType: key })}
-            errorMessage={submittedOnce && errors.requestType ? errors.requestType : ''}
-            validationState={submittedOnce && errors.requestType ? 'invalid' : 'valid'}
-            isRequired
-          >
-            {(item) => <Item key={item.id}>{item.label}</Item>}
-          </Picker>
-
-          <TextField
-            label="Requested By"
-            value={form.requestedBy}
-            onChange={(v) => setForm({ ...form, requestedBy: v })}
-            errorMessage={submittedOnce && errors.requestedBy ? errors.requestedBy : ''}
-            validationState={submittedOnce && errors.requestedBy ? 'invalid' : 'valid'}
-            isRequired
-          />
-
-          <TextField
-            label="Target Date"
-            value={form.dueDate}
-            onChange={(v) => setForm({ ...form, dueDate: v })}
-            errorMessage={submittedOnce && errors.dueDate ? errors.dueDate : ''}
-            validationState={submittedOnce && errors.dueDate ? 'invalid' : 'valid'}
-            isRequired
-          />
-
-          <TextArea
-            label="Request Details"
-            value={form.description}
-            onChange={(v) => setForm({ ...form, description: v })}
-            errorMessage={submittedOnce && errors.description ? errors.description : ''}
-            validationState={submittedOnce && errors.description ? 'invalid' : 'valid'}
-            isRequired
-          />
-
-          <TextField
-            label="Campaign Name"
-            value={form.campaignName}
-            onChange={(v) => setForm({ ...form, campaignName: v })}
-          />
-
-          <TextField
-            label="Brand"
-            value={form.brand}
-            onChange={(v) => setForm({ ...form, brand: v })}
-          />
-
-          <TextField
-            label="Asset Owner"
-            value={form.assetOwner}
-            onChange={(v) => setForm({ ...form, assetOwner: v })}
-          />
-
-          <TextArea
-            label="Additional Notes"
-            value={form.additionalNotes}
-            onChange={(v) => setForm({ ...form, additionalNotes: v })}
-          />
-
-          <Flex gap="size-100" marginTop="size-200" alignItems="center">
-            <Checkbox
-              isSelected={form.notifyRequester}
-              onChange={(checked) => setForm({ ...form, notifyRequester: checked })}
-            >
-              Notify Requester
-            </Checkbox>
-          </Flex>
 
           <Divider size="S" marginTop="size-200" marginBottom="size-200" />
 
