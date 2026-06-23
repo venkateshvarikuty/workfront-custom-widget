@@ -8,6 +8,11 @@
       "label": "Generic Form",
       "id": "custom-widget",
       "url": "/index.html#/custom-widget"
+    },
+    {
+      "label": "IN AISLE Form",
+      "id": "in-aisle-form",
+      "url": "/index.html#/in-aisle-form"
     }
   ],
   "extensions": [

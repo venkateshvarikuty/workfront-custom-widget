@@ -1,0 +1,91 @@
+{
+  "title": "Workfront Task Request",
+  "sections": [
+    {
+      "title": "Request Details",
+      "fields": [
+        {
+          "type": "text",
+          "name": "title",
+          "label": "Title",
+          "required": true,
+          "workfrontField": "DE:Request title"
+        },
+        {
+          "type": "dropdown",
+          "name": "requestType",
+          "label": "Request Type",
+          "required": true,
+          "workfrontField": "DE:Request type",
+          "options": [
+            { "id": "general", "label": "General request" },
+            { "id": "creative", "label": "Creative brief" },
+            { "id": "approval", "label": "Approval request" },
+            { "id": "asset", "label": "Asset update" }
+          ]
+        },
+        {
+          "type": "text",
+          "name": "requestedBy",
+          "label": "Requested By",
+          "required": true,
+          "workfrontField": "DE:Requested by"
+        },
+        {
+          "type": "date",
+          "name": "dueDate",
+          "label": "Target Date",
+          "required": true,
+          "workfrontField": "DE:Target date"
+        },
+        {
+          "type": "textarea",
+          "name": "description",
+          "label": "Request Details",
+          "required": true,
+          "workfrontField": "DE:Request details"
+        }
+      ]
+    },
+    {
+      "title": "Additional Details",
+      "fields": [
+        {
+          "type": "text",
+          "name": "campaignName",
+          "label": "Campaign Name",
+          "required": false,
+          "workfrontField": "DE:Campaign name"
+        },
+        {
+          "type": "text",
+          "name": "brand",
+          "label": "Brand",
+          "required": false,
+          "workfrontField": "DE:Brand"
+        },
+        {
+          "type": "text",
+          "name": "assetOwner",
+          "label": "Asset Owner",
+          "required": false,
+          "workfrontField": "DE:Asset owner"
+        },
+        {
+          "type": "textarea",
+          "name": "additionalNotes",
+          "label": "Additional Notes",
+          "required": false,
+          "workfrontField": "DE:Additional notes"
+        },
+        {
+          "type": "checkbox",
+          "name": "notifyRequester",
+          "label": "Notify Requester",
+          "required": false,
+          "defaultValue": true
+        }
+      ]
+    }
+  ]
+}

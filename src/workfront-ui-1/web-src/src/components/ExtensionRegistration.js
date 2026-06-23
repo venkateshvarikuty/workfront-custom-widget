@@ -29,6 +29,18 @@ function ExtensionRegistration() {
                   maxWidth: 900,
                 },
               },
+              {
+                id: 'in-aisle-form',
+                url: '/index.html#/in-aisle-form',
+                label: 'IN AISLE Form',
+                icon: icon1,
+                dimensions: {
+                  height: 500,
+                  width: 700,
+                  maxHeight: 700,
+                  maxWidth: 900,
+                },
+              },
             // @todo YOUR HEADER BUTTONS DECLARATION SHOULD BE HERE
             ];
           },

@@ -13,7 +13,7 @@ import {
   Well,
 } from '@adobe/react-spectrum';
 import actionWebInvoke from '../utils';
-import formConfig from '../forms/generic-form.json';
+import formConfig from '../forms/screen-network-brief.json';
 import FormRenderer from './FormRenderer';
 
 const TASK_ID_PARAM_NAMES = ['taskId', 'taskID', 'taskid', 'task_id', 'ID', 'id', 'objID', 'objectID'];
@@ -132,7 +132,7 @@ const mapTaskRecordToForm = (record, config) => {
 
 /* ---------- Component ---------- */
 
-const CustomwidgetMainMenuItem = () => {
+const ScreenNetworkBrief = () => {
   const [form, setForm] = useState(initialForm);
   const [prefilledForm, setPrefilledForm] = useState(initialForm);
   const [taskId, setTaskId] = useState('');
@@ -200,7 +200,7 @@ const CustomwidgetMainMenuItem = () => {
           const val = form[field.name];
           if (field.type === 'checkbox') {
             if (!val) {
-              e[field.name] = `${field.label} must be selected.`;
+              e[field.name] = 'Acknowledgement is required.';
             }
           } else if (typeof val !== 'string' || !val.trim()) {
             e[field.name] = `Enter a valid ${field.label.toLowerCase()}.`;
@@ -217,7 +217,7 @@ const CustomwidgetMainMenuItem = () => {
   const handleSubmit = () => {
     setSubmittedOnce(true);
     if (!hasErrors) {
-      console.log('Submitting Form Data:', form);
+      console.log('Submitting Screen Network Brief Data:', form);
       // TODO: submit the form to your backend
     }
   };
@@ -304,4 +304,4 @@ const CustomwidgetMainMenuItem = () => {
   );
 };
 
-export default CustomwidgetMainMenuItem;
+export default ScreenNetworkBrief;
