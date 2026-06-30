@@ -3,6 +3,7 @@ import ErrorBoundary from 'react-error-boundary';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import ExtensionRegistration from './ExtensionRegistration';
 import Customwidget from './CustomwidgetMainMenuItem';
+import DigitalScreensBriefForm from './DigitalScreensBriefForm';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Route index element={<ExtensionRegistration />} />
           <Route exact path="index.html" element={<ExtensionRegistration />} />
           <Route exact path="custom-widget" element={<Customwidget />} />
+          <Route exact path="digital-screens-brief" element={<DigitalScreensBriefForm />} />
         </Routes>
       </ErrorBoundary>
     </Router>

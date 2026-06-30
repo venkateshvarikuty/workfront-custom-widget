@@ -21,6 +21,11 @@ const WORKFRONT_TASK_FIELDS = [
   'DE:Requested by',
   'DE:Target date',
   'DE:Request details',
+  'DE:bookingId',
+  'DE:channels',
+  'DE:leadBrand',
+  'DE:campaignStartDate',
+  'DE:campaignEndDate',
 ];
 
 // Session cache (shared across warm invocations in the same container)
@@ -104,19 +109,36 @@ async function main(params) {
       };
     }
 
-    // Step 2 — Fetch task data from Workfront
-    const fieldsParam = WORKFRONT_TASK_FIELDS.join(',');
-    const apiUrl = `${WORKFRONT_API_BASE_URL}/TASK/${encodeURIComponent(taskId)}?fields=${encodeURIComponent(fieldsParam)}`;
+    const method = (params.__ow_method || 'get').toLowerCase();
 
-    logger.info('Calling Workfront API');
+    // Step 2 — Fetch or update task data from Workfront
+    let response;
+    if (method === 'put') {
+      const updates = params.updates || {};
+      logger.info(`Updating Workfront task ${taskId}`);
 
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        sessionID: sessionId,
-        'Content-Type': 'application/json',
-      },
-    });
+      const apiUrl = `${WORKFRONT_API_BASE_URL}/TASK/${encodeURIComponent(taskId)}`;
+      response = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          sessionID: sessionId,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
+    } else {
+      const fieldsParam = WORKFRONT_TASK_FIELDS.join(',');
+      const apiUrl = `${WORKFRONT_API_BASE_URL}/TASK/${encodeURIComponent(taskId)}?fields=${encodeURIComponent(fieldsParam)}`;
+
+      logger.info('Calling Workfront API');
+      response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          sessionID: sessionId,
+          'Content-Type': 'application/json',
+        },
+      });
+    }
 
     const responseText = await response.text();
     logger.info(`Workfront API responded with status ${response.status}`);
@@ -147,7 +169,7 @@ async function main(params) {
     }
 
     // Step 3 — Return task data
-    logger.info(`Successfully fetched task ${taskId}`);
+    logger.info(`Successfully processed ${method.toUpperCase()} for task ${taskId}`);
     return { statusCode: 200, headers: RESPONSE_HEADERS, body: payload };
 
   } catch (error) {

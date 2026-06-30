@@ -29,6 +29,18 @@ function ExtensionRegistration() {
                   maxWidth: 900,
                 },
               },
+              {
+                id: 'digital-screens-brief',
+                url: '/index.html#/digital-screens-brief',
+                label: 'Digital Screens Brief Form',
+                icon: icon1,
+                dimensions: {
+                  height: 600,
+                  width: 700,
+                  maxHeight: 900,
+                  maxWidth: 900,
+                },
+              },
             // @todo YOUR HEADER BUTTONS DECLARATION SHOULD BE HERE
             ];
           },
