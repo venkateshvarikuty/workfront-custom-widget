@@ -18,11 +18,14 @@ For more information on the difference between `aio app run` and `aio app dev`, 
 
 ## Workfront UI Extension
 
-This app registers one Workfront custom form widget:
+This app registers two Workfront custom form widgets:
 
 - Label: `Generic Form`
 - Widget ID: `custom-widget`
 - Route: `/index.html#/custom-widget`
+- Label: `IN AISLE Form`
+- Widget ID: `in-aisle-form`
+- Route: `/index.html#/in-aisle-form`
 
 To test it in Workfront Form Builder:
 

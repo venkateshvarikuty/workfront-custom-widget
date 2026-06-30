@@ -8,6 +8,11 @@
       "label": "Generic Form",
       "id": "custom-widget",
       "url": "/index.html#/custom-widget"
+    },
+    {
+      "label": "IN AISLE Form",
+      "id": "in-aisle-form",
+      "url": "/index.html#/in-aisle-form"
     }
   ],
   "extensions": [
@@ -17,6 +22,22 @@
       "type": "formFieldWidget",
       "url": "/index.html#/form-field-widget",
       "description": "Custom field widget for Workfront forms with data display and form interactions",
+      "supportedFieldTypes": [
+        "text",
+        "paragraph",
+        "dropdown",
+        "checkbox",
+        "date",
+        "currency",
+        "number"
+      ]
+    },
+    {
+      "id": "in-aisle-form",
+      "label": "IN AISLE Form",
+      "type": "formFieldWidget",
+      "url": "/index.html#/in-aisle-form",
+      "description": "IN AISLE content brief form for Workfront field extension",
       "supportedFieldTypes": [
         "text",
         "paragraph",
