@@ -17,6 +17,8 @@ import {
   View,
   Well,
 } from '@adobe/react-spectrum';
+import { attach } from '@adobe/uix-guest';
+import { extensionId } from './Constants';
 import actionWebInvoke from '../utils';
 import './InAisleForm.css';
 
@@ -51,9 +53,17 @@ const requestTypes = [
 
 const getParamValue = (search) => {
   const params = new URLSearchParams(search);
-  for (const name of TASK_ID_PARAM_NAMES) {
-    const value = params.get(name);
-    if (value?.trim()) return value.trim();
+  const lowerNames = TASK_ID_PARAM_NAMES.map(n => n.toLowerCase());
+  for (const [key, value] of params.entries()) {
+    if (lowerNames.includes(key.toLowerCase()) && value?.trim()) {
+      return value.trim();
+    }
+  }
+  for (const [, value] of params.entries()) {
+    const cleaned = value?.trim();
+    if (cleaned && /^[a-f0-9]{32}$/i.test(cleaned)) {
+      return cleaned;
+    }
   }
   return '';
 };
@@ -70,7 +80,19 @@ const getTaskIdFromUrl = () => {
   }
 
   const match = decodeURIComponent(window.location.href).match(/\/TASK\/([a-z0-9]+)/i);
-  return match?.[1] || '';
+  if (match?.[1]) return match[1];
+
+  try {
+    const referrer = document.referrer;
+    if (referrer) {
+      const refMatch = decodeURIComponent(referrer).match(/\/task\/([a-z0-9]+)/i);
+      if (refMatch?.[1]) return refMatch[1];
+    }
+  } catch (e) {
+    console.error('Failed to parse referrer:', e);
+  }
+
+  return '';
 };
 
 const getActionUrl = () => {
@@ -143,58 +165,34 @@ const InAisleForm = () => {
   const [form, setForm] = useState(initialForm);
   const [prefilledForm, setPrefilledForm] = useState(initialForm);
   const [taskId, setTaskId] = useState('');
-  const [isLoadingTask, setIsLoadingTask] = useState(false);
-  const [loadError, setLoadError] = useState('');
   const [submittedOnce, setSubmittedOnce] = useState(false);
 
   useEffect(() => {
-    const nextTaskId = getTaskIdFromUrl();
-    setTaskId(nextTaskId);
-
-    // If no task ID, show empty form (for testing)
-    if (!nextTaskId) {
-      setIsLoadingTask(false);
-      return undefined;
-    }
-
     let active = true;
 
-    const loadTask = async () => {
-      setIsLoadingTask(true);
-      setLoadError('');
+    const nextTaskId = getTaskIdFromUrl();
+    if (nextTaskId) {
+      setTaskId(nextTaskId);
+    } else {
+      setIsLoadingTask(false);
+    }
 
+    const connectToHost = async () => {
       try {
-        const payload = await actionWebInvoke(
-          getActionUrl(),
-          {},
-          { taskId: nextTaskId },
-          { method: 'GET' },
-        );
+        const guestConnection = await attach({ id: extensionId });
+        if (!active) return;
 
-        const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
-        if (data.error) throw new Error(data.error);
-
-        const taskRecord = getWorkfrontTaskRecord(data);
-        if (Object.keys(taskRecord).length === 0) {
-          throw new Error('No task details were returned for this Task ID.');
-        }
-
-        const nextForm = mapTaskRecordToForm(taskRecord);
-        if (active) {
-          setForm(nextForm);
-          setPrefilledForm(nextForm);
-          setSubmittedOnce(false);
+        const objID = guestConnection.sharedContext.get('objID');
+        if (objID) {
+          setTaskId(objID);
         }
       } catch (error) {
-        if (active) {
-          setLoadError(error.message || 'Unable to load task details from Workfront.');
-        }
-      } finally {
-        if (active) setIsLoadingTask(false);
+        console.warn('Could not attach to Workfront host (this is expected during direct/local testing):', error);
       }
     };
 
-    loadTask();
+    connectToHost();
+
     return () => { active = false; };
   }, []);
 
@@ -226,18 +224,6 @@ const InAisleForm = () => {
     setForm(prefilledForm);
     setSubmittedOnce(false);
   };
-
-  if (loadError) {
-    return (
-      <Provider theme={defaultTheme} colorScheme="light">
-        <View padding="size-200">
-          <Well variant="negative">
-            <Text>Error: {loadError}</Text>
-          </Well>
-        </View>
-      </Provider>
-    );
-  }
 
   return (
     <Provider theme={defaultTheme} colorScheme="light">

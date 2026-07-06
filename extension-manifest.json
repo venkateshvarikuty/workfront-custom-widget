@@ -47,6 +47,38 @@
         "currency",
         "number"
       ]
+    },
+    {
+      "id": "custom-widget",
+      "label": "Generic Form",
+      "type": "formFieldWidget",
+      "url": "/index.html#/custom-widget",
+      "description": "Generic form widget for Workfront custom forms",
+      "supportedFieldTypes": [
+        "text",
+        "paragraph",
+        "dropdown",
+        "checkbox",
+        "date",
+        "currency",
+        "number"
+      ]
+    },
+    {
+      "id": "digital-screens-brief",
+      "label": "Digital Screens Brief Form",
+      "type": "formFieldWidget",
+      "url": "/index.html#/digital-screens-brief",
+      "description": "Digital Screens Brief Form for Workfront custom forms",
+      "supportedFieldTypes": [
+        "text",
+        "paragraph",
+        "dropdown",
+        "checkbox",
+        "date",
+        "currency",
+        "number"
+      ]
     }
   ]
 }
