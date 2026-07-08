@@ -53,6 +53,18 @@ function ExtensionRegistration() {
                   maxWidth: 900,
                 },
               },
+              {
+                id: 'wellcom-brief',
+                url: '/index.html#/wellcom-brief',
+                label: 'Wellcom Brief',
+                icon: icon1,
+                dimensions: {
+                  height: 600,
+                  width: 700,
+                  maxHeight: 900,
+                  maxWidth: 900,
+                },
+              },
             // @todo YOUR HEADER BUTTONS DECLARATION SHOULD BE HERE
             ];
           },

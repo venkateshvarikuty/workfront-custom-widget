@@ -1,0 +1,309 @@
+{
+  "title": "Wellcom Brief",
+  "sections": [
+    {
+      "title": "Client Details",
+      "fields": [
+        {
+          "type": "text",
+          "name": "clientOrganisationName",
+          "label": "Client (Organisation Name)",
+          "required": true,
+          "workfrontField": "DE:Client (Organisation Name)"
+        },
+        {
+          "type": "text",
+          "name": "briefAuthor",
+          "label": "Brief Author",
+          "required": true,
+          "workfrontField": "DE:Brief Author"
+        },
+        {
+          "type": "text",
+          "name": "department",
+          "label": "Department",
+          "required": false,
+          "workfrontField": "DE:Department"
+        },
+        {
+          "type": "text",
+          "name": "budget",
+          "label": "Budget",
+          "required": false,
+          "workfrontField": "DE:Budget"
+        }
+      ]
+    },
+    {
+      "title": "Proposed Timeline",
+      "fields": [
+        {
+          "type": "date",
+          "name": "round1RequiredDate",
+          "label": "Round 1 Required Date",
+          "required": true,
+          "workfrontField": "DE:Round 1 Required Date"
+        },
+        {
+          "type": "date",
+          "name": "finalDeadline",
+          "label": "Final Deadline",
+          "required": true,
+          "workfrontField": "DE:Final Deadline"
+        },
+        {
+          "type": "date",
+          "name": "liveInMarketDate",
+          "label": "Live/In Market Date",
+          "required": false,
+          "workfrontField": "DE:Live/In Market Date"
+        }
+      ]
+    },
+    {
+      "title": "Job Details",
+      "fields": [
+        {
+          "type": "text",
+          "name": "jobProjectTitle",
+          "label": "Job/Project Title",
+          "required": true,
+          "workfrontField": "DE:Job/Project Title"
+        },
+        {
+          "type": "textarea",
+          "name": "objectivesJobDetails",
+          "label": "Objectives / Job Details",
+          "required": true,
+          "workfrontField": "DE:Objectives / Job Details"
+        },
+        {
+          "type": "textarea",
+          "name": "previousJobReference",
+          "label": "Previous Job Reference",
+          "required": false,
+          "workfrontField": "DE:Previous Job Reference"
+        },
+        {
+          "type": "multiselect",
+          "name": "jobType",
+          "label": "Job Type",
+          "required": false,
+          "workfrontField": "DE:Job Type",
+          "options": [
+            { "id": "new", "label": "New" },
+            { "id": "renewal", "label": "Renewal" },
+            { "id": "amendment", "label": "Amendment" },
+            { "id": "other", "label": "Other" }
+          ]
+        },
+        {
+          "type": "textarea",
+          "name": "dispatchInstructionsNotes",
+          "label": "Dispatch Instructions / Notes",
+          "required": false,
+          "workfrontField": "DE:Dispatch Instructions / Notes"
+        },
+        {
+          "type": "textarea",
+          "name": "other",
+          "label": "Other",
+          "required": false,
+          "workfrontField": "DE:Other"
+        }
+      ]
+    },
+    {
+      "title": "Brief Item 1",
+      "fields": [
+        {
+          "type": "textarea",
+          "name": "briefItem1PreviousJobReference",
+          "label": "Previous Job Reference",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Previous Job Reference"
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1Brief",
+          "label": "Brief",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Brief"
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1Specs",
+          "label": "Specs",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Specs"
+        },
+        {
+          "type": "dropdown",
+          "name": "briefItem1Copy",
+          "label": "Copy",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Copy",
+          "options": [
+            { "id": "required", "label": "Required" },
+            { "id": "optional", "label": "Optional" },
+            { "id": "not_required", "label": "Not Required" }
+          ]
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1CopyDetails",
+          "label": "Copy Details",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Copy Details"
+        },
+        {
+          "type": "dropdown",
+          "name": "briefItem1Image",
+          "label": "Image",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Image",
+          "options": [
+            { "id": "required", "label": "Required" },
+            { "id": "optional", "label": "Optional" },
+            { "id": "not_required", "label": "Not Required" }
+          ]
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1ImageDetails",
+          "label": "Image Details",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Image Details"
+        }
+      ]
+    },
+    {
+      "title": "Brief Item 2",
+      "fields": [
+        {
+          "type": "textarea",
+          "name": "briefItem1PreviousJobReference",
+          "label": "Previous Job Reference",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Previous Job Reference"
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1Brief",
+          "label": "Brief",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Brief"
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1Specs",
+          "label": "Specs",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Specs"
+        },
+        {
+          "type": "dropdown",
+          "name": "briefItem1Copy",
+          "label": "Copy",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Copy",
+          "options": [
+            { "id": "required", "label": "Required" },
+            { "id": "optional", "label": "Optional" },
+            { "id": "not_required", "label": "Not Required" }
+          ]
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1CopyDetails",
+          "label": "Copy Details",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Copy Details"
+        },
+        {
+          "type": "dropdown",
+          "name": "briefItem1Image",
+          "label": "Image",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Image",
+          "options": [
+            { "id": "required", "label": "Required" },
+            { "id": "optional", "label": "Optional" },
+            { "id": "not_required", "label": "Not Required" }
+          ]
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1ImageDetails",
+          "label": "Image Details",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Image Details"
+        }
+      ]
+    },
+    {
+      "title": "Brief Item 3",
+      "fields": [
+        {
+          "type": "textarea",
+          "name": "briefItem1PreviousJobReference",
+          "label": "Previous Job Reference",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Previous Job Reference"
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1Brief",
+          "label": "Brief",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Brief"
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1Specs",
+          "label": "Specs",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Specs"
+        },
+        {
+          "type": "dropdown",
+          "name": "briefItem1Copy",
+          "label": "Copy",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Copy",
+          "options": [
+            { "id": "required", "label": "Required" },
+            { "id": "optional", "label": "Optional" },
+            { "id": "not_required", "label": "Not Required" }
+          ]
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1CopyDetails",
+          "label": "Copy Details",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Copy Details"
+        },
+        {
+          "type": "dropdown",
+          "name": "briefItem1Image",
+          "label": "Image",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Image",
+          "options": [
+            { "id": "required", "label": "Required" },
+            { "id": "optional", "label": "Optional" },
+            { "id": "not_required", "label": "Not Required" }
+          ]
+        },
+        {
+          "type": "textarea",
+          "name": "briefItem1ImageDetails",
+          "label": "Image Details",
+          "required": false,
+          "workfrontField": "DE:Brief Item 1 Image Details"
+        }
+      ]
+    }
+  ]
+}

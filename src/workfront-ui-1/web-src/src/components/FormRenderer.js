@@ -5,6 +5,7 @@ import {
   Picker,
   Item,
   Checkbox,
+  CheckboxGroup,
   Flex,
   Heading,
   Divider,
@@ -113,6 +114,34 @@ const FormRenderer = ({ config, formData, onChange, errors, submittedOnce }) => 
                     >
                       {(item) => <Item key={item.id}>{item.label}</Item>}
                     </Picker>
+                  );
+                }
+
+                case 'multiselect': {
+                  const options = field.options || [];
+                  const selectedValues = Array.isArray(formData[field.name]) ? formData[field.name] : [];
+
+                  return (
+                    <View key={field.name} width="100%">
+                      <CheckboxGroup
+                        label={field.label}
+                        value={selectedValues}
+                        onChange={(value) => onChange(field.name, value || [])}
+                        isRequired={field.required}
+                        validationState={validationState}
+                      >
+                        {options.map((option) => (
+                          <Checkbox key={option.id} value={option.id}>
+                            {option.label}
+                          </Checkbox>
+                        ))}
+                      </CheckboxGroup>
+                      {fieldError && (
+                        <Text UNSAFE_style={{ color: '#d7373f', fontSize: '0.85em', marginTop: '4px' }}>
+                          {fieldError}
+                        </Text>
+                      )}
+                    </View>
                   );
                 }
 

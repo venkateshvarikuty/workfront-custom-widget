@@ -7,6 +7,7 @@ import FormFieldWidget from './FormFieldWidget';
 import InAisleForm from './InAisleForm';
 import ScreenNetworkBrief from './ScreenNetworkBrief';
 import DigitalScreensBriefForm from './DigitalScreensBriefForm';
+import WellcomBriefForm from './WellcomBriefForm';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route exact path="in-aisle-form" element={<InAisleForm />} />
           <Route exact path="screen-network-brief" element={<ScreenNetworkBrief />} />
           <Route exact path="digital-screens-brief" element={<DigitalScreensBriefForm />} />
+          <Route exact path="wellcom-brief" element={<WellcomBriefForm />} />
         </Routes>
       </ErrorBoundary>
     </Router>
