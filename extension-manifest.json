@@ -79,6 +79,22 @@
         "currency",
         "number"
       ]
+    },
+    {
+      "id": "wellcom-brief",
+      "label": "Wellcom Brief",
+      "type": "formFieldWidget",
+      "url": "/index.html#/wellcom-brief",
+      "description": "Wellcom Brief form for Workfront custom forms",
+      "supportedFieldTypes": [
+        "text",
+        "paragraph",
+        "dropdown",
+        "checkbox",
+        "date",
+        "currency",
+        "number"
+      ]
     }
   ]
 }
