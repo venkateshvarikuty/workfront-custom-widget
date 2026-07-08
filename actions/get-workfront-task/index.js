@@ -12,7 +12,7 @@
 const { Core } = require('@adobe/aio-sdk');
 const fetch = require('node-fetch');
 
-const WORKFRONT_DOMAIN = 'origin-dluxtechapacptrsdwf.my.workfront.com';
+const WORKFRONT_DOMAIN = 'origin-dluxtechapacptrsdwf.sb02.workfront.com';
 const WORKFRONT_API_BASE_URL = `https://${WORKFRONT_DOMAIN}/attask/api/v21.0`;
 const WORKFRONT_FUSION_HOOK_URL = 'https://hook.app.workfrontfusion.com/q3rzxctayhojj63oprhwd900ge1mfoeo';
 const WORKFRONT_TASK_FIELDS = [
