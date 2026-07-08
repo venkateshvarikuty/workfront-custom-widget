@@ -233,7 +233,7 @@ const InAisleForm = () => {
           <div className="aisle-header-content">
             <div className="aisle-logo">cartology</div>
             <h1 className="aisle-header-title">IN AISLE Request Brief</h1>
-            <p className="aisle-header-subtitle">Please complete and return to: screencontent@cartology.com.au</p>
+            <p className="aisle-header-subtitle">Please complete</p>
           </div>
         </div>
 
