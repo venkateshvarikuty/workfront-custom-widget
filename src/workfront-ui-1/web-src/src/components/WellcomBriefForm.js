@@ -149,6 +149,24 @@ const WellcomBriefForm = () => {
   const hasErrors = Object.keys(errors).length > 0;
   const isFormModified = JSON.stringify(form) !== JSON.stringify(prefilledForm);
 
+  const buildWorkfrontPayload = () => {
+    const updates = {};
+    formConfig.sections.forEach((section) => {
+      section.fields.forEach((field) => {
+        const wfKey = field.workfrontField;
+        if (wfKey) {
+          const value = form[field.name];
+          if (field.type === 'multiselect') {
+            updates[wfKey] = Array.isArray(value) ? value.join(', ') : (value || '');
+          } else {
+            updates[wfKey] = value !== undefined && value !== null ? String(value) : '';
+          }
+        }
+      });
+    });
+    return updates;
+  };
+
   const handleSubmit = async () => {
     setSubmittedOnce(true);
     if (!hasErrors) {
@@ -160,7 +178,7 @@ const WellcomBriefForm = () => {
           {},
           {
             taskId,
-            updates: form,
+            updates: buildWorkfrontPayload(),
           },
           { method: 'PUT' },
         );

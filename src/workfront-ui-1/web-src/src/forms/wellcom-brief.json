@@ -9,28 +9,28 @@
           "name": "clientOrganisationName",
           "label": "Client (Organisation Name)",
           "required": true,
-          "workfrontField": "DE:Client (Organisation Name)"
+          "workfrontField": "DE:clientOrganisationName"
         },
         {
           "type": "text",
           "name": "briefAuthor",
           "label": "Brief Author",
           "required": true,
-          "workfrontField": "DE:Brief Author"
+          "workfrontField": "DE:briefAuthor"
         },
         {
           "type": "text",
           "name": "department",
           "label": "Department",
           "required": false,
-          "workfrontField": "DE:Department"
+          "workfrontField": "DE:department"
         },
         {
           "type": "text",
           "name": "budget",
           "label": "Budget",
           "required": false,
-          "workfrontField": "DE:Budget"
+          "workfrontField": "DE:budget"
         }
       ]
     },
@@ -39,24 +39,17 @@
       "fields": [
         {
           "type": "date",
-          "name": "round1RequiredDate",
-          "label": "Round 1 Required Date",
-          "required": true,
-          "workfrontField": "DE:Round 1 Required Date"
-        },
-        {
-          "type": "date",
           "name": "finalDeadline",
           "label": "Final Deadline",
           "required": true,
-          "workfrontField": "DE:Final Deadline"
+          "workfrontField": "DE:finalDeadline"
         },
         {
           "type": "date",
           "name": "liveInMarketDate",
           "label": "Live/In Market Date",
           "required": false,
-          "workfrontField": "DE:Live/In Market Date"
+          "workfrontField": "DE:liveInMarketDate"
         }
       ]
     },
@@ -68,48 +61,48 @@
           "name": "jobProjectTitle",
           "label": "Job/Project Title",
           "required": true,
-          "workfrontField": "DE:Job/Project Title"
+          "workfrontField": "DE:jobProjectTitle"
         },
         {
           "type": "textarea",
           "name": "objectivesJobDetails",
           "label": "Objectives / Job Details",
           "required": true,
-          "workfrontField": "DE:Objectives / Job Details"
+          "workfrontField": "DE:objectivesJobDetails"
         },
         {
           "type": "textarea",
           "name": "previousJobReference",
           "label": "Previous Job Reference",
           "required": false,
-          "workfrontField": "DE:Previous Job Reference"
+          "workfrontField": "DE:previousJobReference"
         },
         {
-          "type": "multiselect",
+          "type": "dropdown",
           "name": "jobType",
           "label": "Job Type",
           "required": false,
-          "workfrontField": "DE:Job Type",
+          "workfrontField": "DE:jobType",
           "options": [
-            { "id": "new", "label": "New" },
-            { "id": "renewal", "label": "Renewal" },
-            { "id": "amendment", "label": "Amendment" },
-            { "id": "other", "label": "Other" }
+            { "id": "Choice 1", "label": "Choice 1" },
+            { "id": "Choice 2", "label": "Choice 2" },
+            { "id": "Choice 3", "label": "Choice 3" },
+            { "id": "Choice 4", "label": "Choice 4" }
           ]
         },
         {
           "type": "textarea",
-          "name": "dispatchInstructionsNotes",
-          "label": "Dispatch Instructions / Notes",
+          "name": "otherJobType",
+          "label": "Other Job Type",
           "required": false,
-          "workfrontField": "DE:Dispatch Instructions / Notes"
+          "workfrontField": "DE:otherJobType"
         },
         {
           "type": "textarea",
-          "name": "other",
-          "label": "Other",
+          "name": "despatchInstructionsNotes",
+          "label": "Despatch Instructions / Notes",
           "required": false,
-          "workfrontField": "DE:Other"
+          "workfrontField": "DE:despatchInstructionsNotes"
         }
       ]
     },
@@ -121,32 +114,31 @@
           "name": "briefItem1PreviousJobReference",
           "label": "Previous Job Reference",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Previous Job Reference"
+          "workfrontField": "DE:briefItem1PreviousJobReference"
         },
         {
           "type": "textarea",
-          "name": "briefItem1Brief",
-          "label": "Brief",
+          "name": "briefItem1Details",
+          "label": "Details",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Brief"
+          "workfrontField": "DE:briefItem1Details"
         },
         {
           "type": "textarea",
           "name": "briefItem1Specs",
           "label": "Specs",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Specs"
+          "workfrontField": "DE:briefItem1Specs"
         },
         {
           "type": "dropdown",
-          "name": "briefItem1Copy",
+          "name": "briefItem1CopySupplied",
           "label": "Copy",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Copy",
+          "workfrontField": "DE:briefItem1CopySupplied",
           "options": [
-            { "id": "required", "label": "Required" },
-            { "id": "optional", "label": "Optional" },
-            { "id": "not_required", "label": "Not Required" }
+            { "id": "Copy Supplied", "label": "Copy Supplied" },
+            { "id": "Wellcom to Copywrite", "label": "Wellcom to Copywrite" }
           ]
         },
         {
@@ -154,18 +146,17 @@
           "name": "briefItem1CopyDetails",
           "label": "Copy Details",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Copy Details"
+          "workfrontField": "DE:briefItem1CopyDetails"
         },
         {
           "type": "dropdown",
-          "name": "briefItem1Image",
-          "label": "Image",
+          "name": "briefItem1Images",
+          "label": "Images",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Image",
+          "workfrontField": "DE:briefItem1Images",
           "options": [
-            { "id": "required", "label": "Required" },
-            { "id": "optional", "label": "Optional" },
-            { "id": "not_required", "label": "Not Required" }
+            { "id": "Images Supplied", "label": "Images Supplied" },
+            { "id": "Wellcom to Suggest Images", "label": "Wellcom to Suggest Images" }
           ]
         },
         {
@@ -173,7 +164,14 @@
           "name": "briefItem1ImageDetails",
           "label": "Image Details",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Image Details"
+          "workfrontField": "DE:briefItem1ImageDetails"
+        },
+        {
+          "type": "text",
+          "name": "briefItem1SupportingFiles",
+          "label": "Supporting Files",
+          "required": false,
+          "workfrontField": "DE:briefItem1SupportingFiles"
         }
       ]
     },
@@ -182,62 +180,67 @@
       "fields": [
         {
           "type": "textarea",
-          "name": "briefItem1PreviousJobReference",
+          "name": "briefItem2PreviousJobReference",
           "label": "Previous Job Reference",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Previous Job Reference"
+          "workfrontField": "DE:briefItem2PreviousJobReference"
         },
         {
           "type": "textarea",
-          "name": "briefItem1Brief",
-          "label": "Brief",
+          "name": "briefItem2Details",
+          "label": "Details",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Brief"
+          "workfrontField": "DE:briefItem2Details"
         },
         {
           "type": "textarea",
-          "name": "briefItem1Specs",
+          "name": "briefItem2Specs",
           "label": "Specs",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Specs"
+          "workfrontField": "DE:briefItem2Specs"
         },
         {
           "type": "dropdown",
-          "name": "briefItem1Copy",
+          "name": "briefItem2CopySupplied",
           "label": "Copy",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Copy",
+          "workfrontField": "DE:briefItem2CopySupplied",
           "options": [
-            { "id": "required", "label": "Required" },
-            { "id": "optional", "label": "Optional" },
-            { "id": "not_required", "label": "Not Required" }
+            { "id": "Copy Supplied", "label": "Copy Supplied" },
+            { "id": "Wellcom to Copywrite", "label": "Wellcom to Copywrite" }
           ]
         },
         {
           "type": "textarea",
-          "name": "briefItem1CopyDetails",
+          "name": "briefItem2CopyDetails",
           "label": "Copy Details",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Copy Details"
+          "workfrontField": "DE:briefItem2CopyDetails"
         },
         {
           "type": "dropdown",
-          "name": "briefItem1Image",
-          "label": "Image",
+          "name": "briefItem2Images",
+          "label": "Images",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Image",
+          "workfrontField": "DE:briefItem2Images",
           "options": [
-            { "id": "required", "label": "Required" },
-            { "id": "optional", "label": "Optional" },
-            { "id": "not_required", "label": "Not Required" }
+            { "id": "Images Supplied", "label": "Images Supplied" },
+            { "id": "Wellcom to Suggest Images", "label": "Wellcom to Suggest Images" }
           ]
         },
         {
           "type": "textarea",
-          "name": "briefItem1ImageDetails",
+          "name": "briefItem2ImageDetails",
           "label": "Image Details",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Image Details"
+          "workfrontField": "DE:briefItem2ImageDetails"
+        },
+        {
+          "type": "text",
+          "name": "briefItem2SupportingFiles",
+          "label": "Supporting Files",
+          "required": false,
+          "workfrontField": "DE:briefItem2SupportingFiles"
         }
       ]
     },
@@ -246,62 +249,67 @@
       "fields": [
         {
           "type": "textarea",
-          "name": "briefItem1PreviousJobReference",
+          "name": "briefItem3PreviousJobReference",
           "label": "Previous Job Reference",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Previous Job Reference"
+          "workfrontField": "DE:briefItem3PreviousJobReference"
         },
         {
           "type": "textarea",
-          "name": "briefItem1Brief",
-          "label": "Brief",
+          "name": "briefItem3Details",
+          "label": "Details",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Brief"
+          "workfrontField": "DE:briefItem3Details"
         },
         {
           "type": "textarea",
-          "name": "briefItem1Specs",
+          "name": "briefItem3Specs",
           "label": "Specs",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Specs"
+          "workfrontField": "DE:briefItem3Specs"
         },
         {
           "type": "dropdown",
-          "name": "briefItem1Copy",
+          "name": "briefItem3CopySupplied",
           "label": "Copy",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Copy",
+          "workfrontField": "DE:briefItem3CopySupplied",
           "options": [
-            { "id": "required", "label": "Required" },
-            { "id": "optional", "label": "Optional" },
-            { "id": "not_required", "label": "Not Required" }
+            { "id": "Copy Supplied", "label": "Copy Supplied" },
+            { "id": "Wellcom to Copywrite", "label": "Wellcom to Copywrite" }
           ]
         },
         {
           "type": "textarea",
-          "name": "briefItem1CopyDetails",
+          "name": "briefItem3CopyDetails",
           "label": "Copy Details",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Copy Details"
+          "workfrontField": "DE:briefItem3CopyDetails"
         },
         {
           "type": "dropdown",
-          "name": "briefItem1Image",
-          "label": "Image",
+          "name": "briefItem3Images",
+          "label": "Images",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Image",
+          "workfrontField": "DE:briefItem3Images",
           "options": [
-            { "id": "required", "label": "Required" },
-            { "id": "optional", "label": "Optional" },
-            { "id": "not_required", "label": "Not Required" }
+            { "id": "Images Supplied", "label": "Images Supplied" },
+            { "id": "Wellcom to Suggest Images", "label": "Wellcom to Suggest Images" }
           ]
         },
         {
           "type": "textarea",
-          "name": "briefItem1ImageDetails",
+          "name": "briefItem3ImageDetails",
           "label": "Image Details",
           "required": false,
-          "workfrontField": "DE:Brief Item 1 Image Details"
+          "workfrontField": "DE:briefItem3ImageDetails"
+        },
+        {
+          "type": "text",
+          "name": "briefItem3SupportingFiles",
+          "label": "Supporting Files",
+          "required": false,
+          "workfrontField": "DE:briefItem3SupportingFiles"
         }
       ]
     }

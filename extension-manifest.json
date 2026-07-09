@@ -13,6 +13,16 @@
       "label": "IN AISLE Form",
       "id": "in-aisle-form",
       "url": "/index.html#/in-aisle-form"
+    },
+    {
+      "label": "Digital Screens Brief Form",
+      "id": "digital-screens-brief",
+      "url": "/index.html#/digital-screens-brief"
+    },
+    {
+      "label": "Wellcom Brief",
+      "id": "wellcom-brief",
+      "url": "/index.html#/wellcom-brief"
     }
   ],
   "extensions": [
