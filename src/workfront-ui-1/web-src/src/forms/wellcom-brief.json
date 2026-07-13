@@ -147,31 +147,6 @@
           "label": "Copy Details",
           "required": false,
           "workfrontField": "DE:briefItem1CopyDetails"
-        },
-        {
-          "type": "dropdown",
-          "name": "briefItem1Images",
-          "label": "Images",
-          "required": false,
-          "workfrontField": "DE:briefItem1Images",
-          "options": [
-            { "id": "Images Supplied", "label": "Images Supplied" },
-            { "id": "Wellcom to Suggest Images", "label": "Wellcom to Suggest Images" }
-          ]
-        },
-        {
-          "type": "textarea",
-          "name": "briefItem1ImageDetails",
-          "label": "Image Details",
-          "required": false,
-          "workfrontField": "DE:briefItem1ImageDetails"
-        },
-        {
-          "type": "text",
-          "name": "briefItem1SupportingFiles",
-          "label": "Supporting Files",
-          "required": false,
-          "workfrontField": "DE:briefItem1SupportingFiles"
         }
       ]
     },
@@ -216,31 +191,6 @@
           "label": "Copy Details",
           "required": false,
           "workfrontField": "DE:briefItem2CopyDetails"
-        },
-        {
-          "type": "dropdown",
-          "name": "briefItem2Images",
-          "label": "Images",
-          "required": false,
-          "workfrontField": "DE:briefItem2Images",
-          "options": [
-            { "id": "Images Supplied", "label": "Images Supplied" },
-            { "id": "Wellcom to Suggest Images", "label": "Wellcom to Suggest Images" }
-          ]
-        },
-        {
-          "type": "textarea",
-          "name": "briefItem2ImageDetails",
-          "label": "Image Details",
-          "required": false,
-          "workfrontField": "DE:briefItem2ImageDetails"
-        },
-        {
-          "type": "text",
-          "name": "briefItem2SupportingFiles",
-          "label": "Supporting Files",
-          "required": false,
-          "workfrontField": "DE:briefItem2SupportingFiles"
         }
       ]
     },
@@ -285,31 +235,6 @@
           "label": "Copy Details",
           "required": false,
           "workfrontField": "DE:briefItem3CopyDetails"
-        },
-        {
-          "type": "dropdown",
-          "name": "briefItem3Images",
-          "label": "Images",
-          "required": false,
-          "workfrontField": "DE:briefItem3Images",
-          "options": [
-            { "id": "Images Supplied", "label": "Images Supplied" },
-            { "id": "Wellcom to Suggest Images", "label": "Wellcom to Suggest Images" }
-          ]
-        },
-        {
-          "type": "textarea",
-          "name": "briefItem3ImageDetails",
-          "label": "Image Details",
-          "required": false,
-          "workfrontField": "DE:briefItem3ImageDetails"
-        },
-        {
-          "type": "text",
-          "name": "briefItem3SupportingFiles",
-          "label": "Supporting Files",
-          "required": false,
-          "workfrontField": "DE:briefItem3SupportingFiles"
         }
       ]
     }
