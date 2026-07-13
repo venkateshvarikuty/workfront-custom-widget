@@ -331,42 +331,7 @@ const DigitalScreensBriefForm = () => {
           </Well>
         ) : (
           <Form labelPosition="top">
-            {/* Prefilled Fields at the top */}
-            <Heading level={4} marginTop="size-100">Prefilled Workfront Data</Heading>
-            <Flex gap="size-200" wrap marginBottom="size-200">
-              <TextField
-                label="Booking ID"
-                value={form.bookingId}
-                isDisabled
-                width="size-2000"
-              />
-              <TextField
-                label="Channels"
-                value={form.channels}
-                isDisabled
-                width="size-2000"
-              />
-              <TextField
-                label="Lead Brand"
-                value={form.leadBrand}
-                isDisabled
-                width="size-2000"
-              />
-              <TextField
-                label="Campaign Start Date"
-                value={form.campaignStartDate}
-                isDisabled
-                width="size-2000"
-              />
-              <TextField
-                label="Campaign End Date"
-                value={form.campaignEndDate}
-                isDisabled
-                width="size-2000"
-              />
-            </Flex>
 
-            <Divider size="S" marginBottom="size-200" />
 
             {/* Section 1: General Information */}
             <Heading level={4}>General Information</Heading>
