@@ -155,25 +155,6 @@
           "label": "Copy Details",
           "required": false,
           "workfrontField": "DE:Brief Item 1 Copy Details"
-        },
-        {
-          "type": "dropdown",
-          "name": "briefItem1Image",
-          "label": "Image",
-          "required": false,
-          "workfrontField": "DE:Brief Item 1 Image",
-          "options": [
-            { "id": "required", "label": "Required" },
-            { "id": "optional", "label": "Optional" },
-            { "id": "not_required", "label": "Not Required" }
-          ]
-        },
-        {
-          "type": "textarea",
-          "name": "briefItem1ImageDetails",
-          "label": "Image Details",
-          "required": false,
-          "workfrontField": "DE:Brief Item 1 Image Details"
         }
       ]
     },
@@ -219,25 +200,6 @@
           "label": "Copy Details",
           "required": false,
           "workfrontField": "DE:Brief Item 1 Copy Details"
-        },
-        {
-          "type": "dropdown",
-          "name": "briefItem1Image",
-          "label": "Image",
-          "required": false,
-          "workfrontField": "DE:Brief Item 1 Image",
-          "options": [
-            { "id": "required", "label": "Required" },
-            { "id": "optional", "label": "Optional" },
-            { "id": "not_required", "label": "Not Required" }
-          ]
-        },
-        {
-          "type": "textarea",
-          "name": "briefItem1ImageDetails",
-          "label": "Image Details",
-          "required": false,
-          "workfrontField": "DE:Brief Item 1 Image Details"
         }
       ]
     },
@@ -283,25 +245,6 @@
           "label": "Copy Details",
           "required": false,
           "workfrontField": "DE:Brief Item 1 Copy Details"
-        },
-        {
-          "type": "dropdown",
-          "name": "briefItem1Image",
-          "label": "Image",
-          "required": false,
-          "workfrontField": "DE:Brief Item 1 Image",
-          "options": [
-            { "id": "required", "label": "Required" },
-            { "id": "optional", "label": "Optional" },
-            { "id": "not_required", "label": "Not Required" }
-          ]
-        },
-        {
-          "type": "textarea",
-          "name": "briefItem1ImageDetails",
-          "label": "Image Details",
-          "required": false,
-          "workfrontField": "DE:Brief Item 1 Image Details"
         }
       ]
     }
