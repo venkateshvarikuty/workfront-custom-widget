@@ -23,6 +23,11 @@
       "label": "Wellcom Brief",
       "id": "wellcom-brief",
       "url": "/index.html#/wellcom-brief"
+    },
+    {
+      "label": "Task Status",
+      "id": "task-status",
+      "url": "/index.html#/task-status"
     }
   ],
   "extensions": [
@@ -104,6 +109,18 @@
         "date",
         "currency",
         "number"
+      ]
+    },
+    {
+      "id": "task-status",
+      "label": "Task Status",
+      "type": "formFieldWidget",
+      "url": "/index.html#/task-status",
+      "description": "Task Status widget for updating Workfront task status",
+      "supportedFieldTypes": [
+        "text",
+        "paragraph",
+        "dropdown"
       ]
     }
   ]

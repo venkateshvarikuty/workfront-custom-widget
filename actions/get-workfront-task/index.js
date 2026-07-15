@@ -16,16 +16,7 @@ const WORKFRONT_DOMAIN = 'origin-dluxtechapacptrsdwf.sb02.workfront.com';
 const WORKFRONT_API_BASE_URL = `https://${WORKFRONT_DOMAIN}/attask/api/v21.0`;
 const WORKFRONT_FUSION_HOOK_URL = 'https://hook.app.workfrontfusion.com/q3rzxctayhojj63oprhwd900ge1mfoeo';
 const WORKFRONT_TASK_FIELDS = [
-  'DE:Request type',
-  'DE:Request title',
-  'DE:Requested by',
-  'DE:Target date',
-  'DE:Request details',
-  'DE:bookingId',
-  'DE:channels',
-  'DE:leadBrand',
-  'DE:campaignStartDate',
-  'DE:campaignEndDate',
+  'status',
 ];
 
 // Session cache (shared across warm invocations in the same container)

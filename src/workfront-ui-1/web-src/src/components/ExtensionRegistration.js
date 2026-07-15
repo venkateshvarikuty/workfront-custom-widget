@@ -65,6 +65,18 @@ function ExtensionRegistration() {
                   maxWidth: 900,
                 },
               },
+              {
+                id: 'task-status',
+                url: '/index.html#/task-status',
+                label: 'Task Status',
+                icon: icon1,
+                dimensions: {
+                  height: 300,
+                  width: 500,
+                  maxHeight: 500,
+                  maxWidth: 700,
+                },
+              },
             // @todo YOUR HEADER BUTTONS DECLARATION SHOULD BE HERE
             ];
           },

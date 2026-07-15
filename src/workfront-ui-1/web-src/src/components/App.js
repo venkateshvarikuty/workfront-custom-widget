@@ -8,6 +8,7 @@ import InAisleForm from './InAisleForm';
 import ScreenNetworkBrief from './ScreenNetworkBrief';
 import DigitalScreensBriefForm from './DigitalScreensBriefForm';
 import WellcomBriefForm from './WellcomBriefForm';
+import TaskStatusForm from './TaskStatusForm';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route exact path="screen-network-brief" element={<ScreenNetworkBrief />} />
           <Route exact path="digital-screens-brief" element={<DigitalScreensBriefForm />} />
           <Route exact path="wellcom-brief" element={<WellcomBriefForm />} />
+          <Route exact path="task-status" element={<TaskStatusForm />} />
         </Routes>
       </ErrorBoundary>
     </Router>

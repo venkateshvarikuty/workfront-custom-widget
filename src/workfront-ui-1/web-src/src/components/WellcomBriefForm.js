@@ -93,6 +93,8 @@ const WellcomBriefForm = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [isTaskCompleted, setIsTaskCompleted] = useState(false);
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -122,6 +124,36 @@ const WellcomBriefForm = () => {
       active = false;
     };
   }, []);
+
+  // Fetch task status to check if already completed
+  useEffect(() => {
+    if (!taskId) return;
+    let active = true;
+
+    const checkTaskStatus = async () => {
+      setIsLoadingStatus(true);
+      try {
+        const payload = await actionWebInvoke(
+          getActionUrl(),
+          {},
+          { taskId },
+          { method: 'GET' },
+        );
+        const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
+        const status = data?.data?.status || data?.status || '';
+        if (active && status === 'CPL') {
+          setIsTaskCompleted(true);
+        }
+      } catch (error) {
+        console.warn('Could not check task status:', error);
+      } finally {
+        if (active) setIsLoadingStatus(false);
+      }
+    };
+
+    checkTaskStatus();
+    return () => { active = false; };
+  }, [taskId]);
 
   const errors = useMemo(() => {
     const e = {};
@@ -154,13 +186,14 @@ const WellcomBriefForm = () => {
     formConfig.sections.forEach((section) => {
       section.fields.forEach((field) => {
         const wfKey = field.workfrontField;
-        if (wfKey) {
-          const value = form[field.name];
-          if (field.type === 'multiselect') {
-            updates[wfKey] = Array.isArray(value) ? value.join(', ') : (value || '');
-          } else {
-            updates[wfKey] = value !== undefined && value !== null ? String(value) : '';
-          }
+        if (!wfKey) return;
+        const value = form[field.name];
+        if (field.type === 'multiselect') {
+          const joined = Array.isArray(value) ? value.join(', ') : (value || '');
+          if (joined) updates[wfKey] = joined;
+        } else {
+          const str = value !== undefined && value !== null ? String(value).trim() : '';
+          if (str) updates[wfKey] = str;
         }
       });
     });
@@ -173,6 +206,7 @@ const WellcomBriefForm = () => {
       setIsSubmitting(true);
       setSubmitError('');
       try {
+        // Step 1 — Save brief fields
         const payload = await actionWebInvoke(
           getActionUrl(),
           {},
@@ -185,6 +219,22 @@ const WellcomBriefForm = () => {
 
         const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
         if (data && data.error) throw new Error(data.error);
+
+        // Step 2 — Set task status to Complete (CPL)
+        const statusPayload = await actionWebInvoke(
+          getActionUrl(),
+          {},
+          {
+            taskId,
+            updates: { status: 'CPL' },
+          },
+          { method: 'PUT' },
+        );
+
+        const statusData = typeof statusPayload === 'string' ? JSON.parse(statusPayload) : statusPayload;
+        if (statusData && statusData.error) {
+          console.warn('Brief saved but failed to close task:', statusData.error);
+        }
 
         setIsSuccess(true);
       } catch (error) {
@@ -216,13 +266,17 @@ const WellcomBriefForm = () => {
 
         <Divider size="S" marginTop="size-200" marginBottom="size-200" />
 
-        {isSuccess ? (
+        {isLoadingStatus ? (
+          <Text>Loading task status...</Text>
+        ) : isTaskCompleted ? (
+          <Well marginTop="size-200" marginBottom="size-200">
+            <Heading level={4}>Brief Already Submitted</Heading>
+            <Text>This brief has already been submitted. We'll get back to you in case of any further queries.</Text>
+          </Well>
+        ) : isSuccess ? (
           <Well variant="positive" marginTop="size-200" marginBottom="size-200">
             <Heading level={4}>Brief Submitted Successfully!</Heading>
             <Text>Thank you for submitting the new brief.</Text>
-            <Flex marginTop="size-200">
-              <Button variant="secondary" onPress={handleReset}>Fill Another / Edit</Button>
-            </Flex>
           </Well>
         ) : (
           <Form>
