@@ -48,7 +48,7 @@ function ExtensionRegistration() {
                 icon: icon1,
                 dimensions: {
                   height: 600,
-                  width: 700,
+                  width: 1200,
                   maxHeight: 900,
                   maxWidth: 900,
                 },
