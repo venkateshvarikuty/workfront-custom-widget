@@ -28,6 +28,10 @@ coverage
 .aws.tmp.creds.json
 .wskdebug.props.tmp
 
+# Adobe workspace credential files
+workspace.json
+*-workspace.json
+
 # Parcel
 .parcel-cache
 
