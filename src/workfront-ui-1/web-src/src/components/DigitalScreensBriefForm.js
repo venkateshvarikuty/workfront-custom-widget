@@ -47,13 +47,16 @@ const initialForm = {
   campaignStartDate: '',
   campaignEndDate: '',
 
-  // General Information
-  clientAgency: '',
-  brandProduct: '',
+  // General Information (project-level prefilled fields)
+  uniqueBookingNumber: '',
+  mediaCampaign: '',
+  leadBrandName: '',
+  campaignType: '',
+
+  // General Information (user-editable fields)
   inMarketDate: '',
   clientContact: '',
   communicationPillar: '',
-  brandProductOther: '',
   screenContentOption: '',
   screenContentOptionOther: '',
   supportingAssetsBooked: '',
@@ -168,6 +171,12 @@ const getWorkfrontField = (record, fieldName) => {
   return '';
 };
 
+const getProjectField = (record, fieldName) => {
+  const project = record?.project;
+  if (!project || typeof project !== 'object') return '';
+  return getWorkfrontField(project, fieldName);
+};
+
 const toText = (v) => (v === undefined || v === null ? '' : String(v).trim());
 
 const toDate = (v) => {
@@ -186,6 +195,12 @@ const mapTaskRecordToForm = (record) => {
     leadBrand: toText(getWorkfrontField(record, 'DE:leadBrand')),
     campaignStartDate: toDate(getWorkfrontField(record, 'DE:campaignStartDate')),
     campaignEndDate: toDate(getWorkfrontField(record, 'DE:campaignEndDate')),
+
+    // Project-level fields
+    uniqueBookingNumber: toText(getProjectField(record, 'DE:uniqueBookingNumber')),
+    mediaCampaign: toText(getProjectField(record, 'DE:mediaCampiagn')),
+    leadBrandName: toText(getProjectField(record, 'DE:leadBrandName')),
+    campaignType: toText(getProjectField(record, 'DE:campiagnType')),
   };
 };
 
@@ -201,6 +216,7 @@ const DigitalScreensBriefForm = () => {
   const [submitError, setSubmitError] = useState('');
   const [isTaskCompleted, setIsTaskCompleted] = useState(false);
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const pillarOptions = useMemo(() => {
     const hasSelected = communicationPillarOptions.some((t) => t.id === form.communicationPillar);
@@ -241,13 +257,14 @@ const DigitalScreensBriefForm = () => {
     return () => { active = false; };
   }, []);
 
-  // Fetch task status to check if already completed
+  // Fetch task data, check status, and prefill form
   useEffect(() => {
     if (!taskId) return;
     let active = true;
 
-    const checkTaskStatus = async () => {
+    const fetchTaskData = async () => {
       setIsLoadingStatus(true);
+      setIsLoadingData(true);
       try {
         const payload = await actionWebInvoke(
           getActionUrl(),
@@ -260,21 +277,35 @@ const DigitalScreensBriefForm = () => {
         if (active && status === 'CPL') {
           setIsTaskCompleted(true);
         }
+
+        // Prefill form from task + project data
+        if (active) {
+          const record = getWorkfrontTaskRecord(data);
+          const mapped = mapTaskRecordToForm(record);
+          setForm(mapped);
+          setPrefilledForm(mapped);
+        }
       } catch (error) {
-        console.warn('Could not check task status:', error);
+        console.warn('Could not fetch task data:', error);
       } finally {
-        if (active) setIsLoadingStatus(false);
+        if (active) {
+          setIsLoadingStatus(false);
+          setIsLoadingData(false);
+        }
       }
     };
 
-    checkTaskStatus();
+    fetchTaskData();
     return () => { active = false; };
   }, [taskId]);
 
+  // Helper: check if a field was prefilled from Workfront data
+  const isPrefilled = (fieldName) => {
+    return prefilledForm[fieldName] !== undefined && prefilledForm[fieldName] !== '' && prefilledForm[fieldName] !== false;
+  };
+
   const errors = useMemo(() => {
     const e = {};
-    if (!form.clientAgency.trim()) e.clientAgency = 'Client/Agency is required.';
-    if (!form.brandProduct.trim()) e.brandProduct = 'Brand/Product is required.';
     if (!form.inMarketDate.trim()) e.inMarketDate = 'In Market Date is required.';
     if (!form.acknowledged) e.acknowledged = 'You must acknowledge the terms to submit.';
     return e;
@@ -295,12 +326,10 @@ const DigitalScreensBriefForm = () => {
           {
             taskId: taskId,
             updates: {
-              'DE:clients': form.clientAgency,
               'DE:communicationPillarTemplate': form.communicationPillar,
-              'DE:brandProduct': form.brandProduct,
               'DE:inMarketDate': form.inMarketDate,
               'DE:screenContentOption': form.screenContentOption,
-              'DE:other': form.brandProductOther || form.screenContentOptionOther,
+              'DE:other': form.screenContentOptionOther,
               'DE:clientContact': form.clientContact,
               'DE:supportingCartologyAssetsBooked': form.supportingAssetsBooked,
               'DE:departmentProductStockedIn': form.deptProductStockedIn,
@@ -369,17 +398,17 @@ const DigitalScreensBriefForm = () => {
 
         <Divider size="S" marginTop="size-200" marginBottom="size-200" />
 
-        {isLoadingStatus ? (
-          <Text>Loading task status...</Text>
+        {isLoadingStatus || isLoadingData ? (
+          <Text>Loading task data...</Text>
         ) : isTaskCompleted ? (
           <Well marginTop="size-200" marginBottom="size-200">
             <Heading level={4}>Brief Already Submitted</Heading>
             <Text>This brief has already been submitted. We'll get back to you in case of any further queries.</Text>
           </Well>
         ) : isSuccess ? (
-          <Well variant="positive" marginTop="size-200" marginBottom="size-200">
+          <Well marginTop="size-200" marginBottom="size-200">
             <Heading level={4}>Brief Submitted Successfully!</Heading>
-            <Text>Thank you for submitting the Digital Screens Content Brief.</Text>
+            <Text>Form is filled, we will get back to you in case of any queries.</Text>
           </Well>
         ) : (
           <Form labelPosition="top">
@@ -387,17 +416,34 @@ const DigitalScreensBriefForm = () => {
 
             {/* Section 1: General Information */}
             <Heading level={4}>General Information</Heading>
-            <Text UNSAFE_style={{ fontSize: '0.85em', color: '#666', marginBottom: '8px' }}>
-              Please complete and return to: screencontent@cartology.com.au
-            </Text>
+
             <Flex gap="size-200" wrap>
               <TextField
-                label="Client(s)"
-                value={form.clientAgency}
-                onChange={(v) => setForm({ ...form, clientAgency: v })}
-                errorMessage={submittedOnce && errors.clientAgency}
-                validationState={submittedOnce && errors.clientAgency ? 'invalid' : 'valid'}
-                isRequired
+                label="Unique Booking Number"
+                value={form.uniqueBookingNumber}
+                isDisabled={isPrefilled('uniqueBookingNumber')}
+                onChange={(v) => setForm({ ...form, uniqueBookingNumber: v })}
+                width="48%"
+              />
+              <TextField
+                label="Media Campaign"
+                value={form.mediaCampaign}
+                isDisabled={isPrefilled('mediaCampaign')}
+                onChange={(v) => setForm({ ...form, mediaCampaign: v })}
+                width="48%"
+              />
+              <TextField
+                label="Lead Brand Name"
+                value={form.leadBrandName}
+                isDisabled={isPrefilled('leadBrandName')}
+                onChange={(v) => setForm({ ...form, leadBrandName: v })}
+                width="48%"
+              />
+              <TextField
+                label="Campaign Type"
+                value={form.campaignType}
+                isDisabled={isPrefilled('campaignType')}
+                onChange={(v) => setForm({ ...form, campaignType: v })}
                 width="48%"
               />
               <Picker
@@ -409,21 +455,6 @@ const DigitalScreensBriefForm = () => {
               >
                 {(item) => <Item key={item.id}>{item.label}</Item>}
               </Picker>
-              <TextField
-                label="Brand/Product"
-                value={form.brandProduct}
-                onChange={(v) => setForm({ ...form, brandProduct: v })}
-                errorMessage={submittedOnce && errors.brandProduct}
-                validationState={submittedOnce && errors.brandProduct ? 'invalid' : 'valid'}
-                isRequired
-                width="48%"
-              />
-              <TextField
-                label="Other (Brand/Product)"
-                value={form.brandProductOther}
-                onChange={(v) => setForm({ ...form, brandProductOther: v })}
-                width="48%"
-              />
               <TextField
                 label="In Market Date"
                 value={form.inMarketDate}

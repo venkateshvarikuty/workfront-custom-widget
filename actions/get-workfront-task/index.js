@@ -17,6 +17,10 @@ const WORKFRONT_API_BASE_URL = `https://${WORKFRONT_DOMAIN}/attask/api/v21.0`;
 const WORKFRONT_FUSION_HOOK_URL = 'https://hook.app.workfrontfusion.com/q3rzxctayhojj63oprhwd900ge1mfoeo';
 const WORKFRONT_TASK_FIELDS = [
   'status',
+  'project:DE:uniqueBookingNumber',
+  'project:DE:mediaCampiagn',
+  'project:DE:leadBrandName',
+  'project:DE:campiagnType',
 ];
 
 // Session cache (shared across warm invocations in the same container)
