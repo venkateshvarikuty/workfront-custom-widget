@@ -8,7 +8,7 @@ Welcome to my Adobe I/O Application!
 
 ## Local Dev
 
-- `aio app run` to start your local Dev server
+- `aio app run` to start your local Dev servers
 - App will run on `localhost:9080` by default
 - For Workfront custom form UI Extensions, use the base local URL from `aio app run` as the Workfront `extensionOverride` value, for example `https://localhost:62847`. Do not use the routed widget URL as the override value.
 
