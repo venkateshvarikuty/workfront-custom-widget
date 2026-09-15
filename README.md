@@ -44,6 +44,23 @@ To test it in Workfront Form Builder:
 - `aio app deploy` to build and deploy all actions on Runtime and static files to CDN
 - `aio app undeploy` to undeploy the app
 
+## CI/CD
+
+This project uses GitHub Actions for automated builds and deployments. See [docs/github-cicd.md](docs/github-cicd.md) for the full guide.
+
+| Workflow | Trigger | Target |
+|---|---|---|
+| **PR Validation** | Pull Request → `main` | Build + test only (no deploy) |
+| **Deploy Stage** | Push/merge to `main` | Adobe App Builder Stage workspace |
+| **Deploy Production** | GitHub Release published | Adobe App Builder Production workspace (requires approval) |
+
+**Release process:**
+1. Merge your PR into `main` → auto-deploys to Stage
+2. Validate on Stage
+3. Create a GitHub Release (e.g. `v1.0.0`) → triggers Production deployment after approval
+
+> **Note:** Do not deploy to Production manually with `aio app deploy`. Use the GitHub Release flow.
+
 ## Config
 
 ### `.env`
