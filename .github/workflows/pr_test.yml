@@ -16,6 +16,8 @@ jobs:
   validate:
     name: Validate PR
     runs-on: ubuntu-latest
+    environment: stage
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,27 +37,27 @@ jobs:
           version: 11.x.x
 
       - name: Auth
-        uses: adobe/aio-apps-action@3.3.0
+        uses: adobe/aio-apps-action@4.1.0
         with:
           os: ubuntu-latest
           command: oauth_sts
-          CLIENTID: ${{ secrets.CLIENTID_STAGE }}
-          CLIENTSECRET: ${{ secrets.CLIENTSECRET_STAGE }}
-          TECHNICALACCOUNTID: ${{ secrets.TECHNICALACCID_STAGE }}
-          TECHNICALACCOUNTEMAIL: ${{ secrets.TECHNICALACCEMAIL_STAGE }}
-          IMSORGID: ${{ secrets.IMSORGID_STAGE }}
-          SCOPES: ${{ secrets.SCOPES_STAGE }}
+          CLIENTID: ${{ secrets.CLIENTID }}
+          CLIENTSECRET: ${{ secrets.CLIENTSECRET }}
+          TECHNICALACCOUNTID: ${{ secrets.TECHNICALACCID }}
+          TECHNICALACCOUNTEMAIL: ${{ secrets.TECHNICALACCEMAIL }}
+          IMSORGID: ${{ secrets.IMSORGID }}
+          SCOPES: ${{ secrets.SCOPES }}
 
       - name: Build
         env:
-          AIO_RUNTIME_NAMESPACE: ${{ secrets.AIO_RUNTIME_NAMESPACE_STAGE }}
-        uses: adobe/aio-apps-action@3.3.0
+          AIO_RUNTIME_NAMESPACE: ${{ secrets.AIO_RUNTIME_NAMESPACE }}
+        uses: adobe/aio-apps-action@4.1.0
         with:
           os: ubuntu-latest
           command: build
 
       - name: Test
-        uses: adobe/aio-apps-action@3.3.0
+        uses: adobe/aio-apps-action@4.1.0
         with:
           os: ubuntu-latest
           command: test
