@@ -16,6 +16,8 @@ jobs:
   validate:
     name: Validate PR
     runs-on: ubuntu-latest
+    environment: stage
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
