@@ -37,7 +37,7 @@ To test it in Workfront Form Builder:
 ## Test & Coverage
 
 - Run `aio app test` to run unit tests for ui and actions
-- Run `aio app test --e2e` to run e2e tests
+- Run `aio app test --e2e` to run e2e test
 
 ## Deploy & Cleanup
 
