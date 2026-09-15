@@ -46,7 +46,7 @@ To test it in Workfront Form Builder:
 
 ## CI/CD
 
-This project uses GitHub Actions for automated builds and deployments. See [docs/github-cicd.md](docs/github-cicd.md) for the full guides.
+This project uses GitHub Actions for automated builds and deployments. See [docs/github-cicd.md](docs/github-cicd.md) for the full guide.
 
 | Workflow | Trigger | Target |
 |---|---|---|
